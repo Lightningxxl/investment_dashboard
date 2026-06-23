@@ -648,7 +648,7 @@
     }
     table {
       width: 100%;
-      min-width: 1700px;
+      min-width: 1780px;
       border-collapse: collapse;
       font-size: 13px;
     }
@@ -1125,7 +1125,7 @@ AUM / 容量 = 当前未接入</code>
               <option value="score">综合分最高</option>
               <option value="adjReturn">调整后收益最高</option>
               <option value="risk">风险最低</option>
-              <option value="history">历史最长</option>
+              <option value="history">年度样本最多</option>
               <option value="beta">Beta 最低</option>
               <option value="market">相关性最低</option>
               <option value="concentration">集中度风险最低</option>
@@ -1145,6 +1145,7 @@ AUM / 容量 = 当前未接入</code>
                 <th>产品</th>
                 <th>策略</th>
                 <th>综合分</th>
+                <th>可信度</th>
                 <th>调整后收益</th>
                 <th>历史收益</th>
                 <th>波动 proxy</th>
@@ -1152,7 +1153,7 @@ AUM / 容量 = 当前未接入</code>
                 <th>Beta</th>
                 <th>相关性</th>
                 <th>集中度风险 proxy</th>
-                <th>历史长度</th>
+                <th>可用年度样本</th>
                 <th>口径</th>
                 <th>解释</th>
               </tr>
@@ -1290,7 +1291,7 @@ AUM / 容量 = 当前未接入</code>
       return concentrationProfiles[state.concentrationMode] || concentrationProfiles.balanced;
     }
     const weightDefinitions = [
-      { key: "history", label: "历史样本长度", help: "50底层起始日和完整年度数量。历史越长、跨年度越多，过往表现参考价值越高。" },
+      { key: "history", label: "历史样本长度", help: "PDF 里 2019-2025 可用年度收益数量。年度样本越多，过往表现的参考基础越充分。" },
       { key: "market", label: "低大盘相关性", help: "分数越高，越偏好相对当前 Beta benchmark 的低相关、低 beta 产品。0 分代表这个维度不参与评分。" },
       { key: "concentration", label: "低集中度风险", help: "分数越高，越偏好策略、资产、行业或风格更分散的产品。当前用策略分类和标签估算。" },
       { key: "data", label: "数据口径质量", help: "[1] 拼接净值扣分，[2] 费后口径加分，字段缺失或样本过少会降低口径分。" }
@@ -1299,9 +1300,9 @@ AUM / 容量 = 当前未接入</code>
       history: {
         title: "历史样本长度",
         subtitle: "衡量历史业绩样本是否足够长。",
-        source: "这个指标通过 PDF 里的 50底层统计起始日，以及 2019-2025 各完整年度收益字段得到。",
-        processing: "历史样本越完善，维度评分越高。这里同时看两个东西：起始日至报告日的年限，以及可用完整年度数量。",
-        usage: "左侧重要性越高，产品综合评分越偏向历史样本长的产品；历史短的新产品即使收益高，调整后收益和权重上限也会更受约束。"
+        source: "这个指标通过 PDF 里的 2019-2025 各年度收益字段得到。",
+        processing: "可用年度收益年份越多，维度评分越高。这里衡量的是材料给到的历史业绩样本，不代表当前列示产品成立年限。",
+        usage: "左侧重要性越高，产品综合评分越偏向可用年度样本更多的产品；年度样本少的产品即使收益高，调整后收益和权重上限也会更受约束。"
       },
       market: {
         title: "低大盘相关性",
@@ -1499,7 +1500,7 @@ AUM / 容量 = 当前未接入</code>
           const dd1y = Math.abs(toNum(r.max_drawdown_1y_pct) ?? 0);
           const histDd = Math.abs(toNum(r.max_drawdown_hist_pct) ?? dd1y);
           const age = yearsBetween(r.fifty_underlying_start_date);
-          const historyYears = Math.max(age, annual.length);
+          const historyYears = annual.length;
           const vol = stdev(annual) ?? Math.max(4, Math.min(45, histDd * 0.45 || dd1y * 0.8 || 10));
           const strategyBeta = betaProxy(r);
           const concentrationRisk = concentrationRiskProxy(r);
@@ -1513,6 +1514,7 @@ AUM / 容量 = 当前未接入</code>
             histDd,
             age,
             historyYears,
+            trackingYears: age,
             annualCount: annual.length,
             vol,
             strategyBeta,
@@ -1531,7 +1533,7 @@ AUM / 容量 = 当前未接入</code>
       const betaStats = betaAgainstBenchmark(fund, fund.strategyBeta);
       const beta = betaStats.beta;
       const marketCorr = betaStats.marketCorr;
-      const history = clamp((Math.min(fund.historyYears, 5) / 5) * 72 + (Math.min(fund.annualCount, 5) / 5) * 28, 0, 100);
+      const history = clamp((Math.min(fund.annualCount, 5) / 5) * 100, 0, 100);
       const market = clamp(100 - marketCorr * 100 - Math.max(0, beta - state.maxBeta) * 18, 0, 100);
       const concentration = clamp(100 - fund.concentrationRisk * 100, 0, 100);
 
@@ -1761,7 +1763,7 @@ AUM / 容量 = 当前未接入</code>
         score: (a, b) => b.scores.total - a.scores.total,
         adjReturn: (a, b) => b.adjReturn - a.adjReturn,
         risk: (a, b) => (a.vol + a.histDd) - (b.vol + b.histDd),
-        history: (a, b) => b.historyYears - a.historyYears,
+        history: (a, b) => b.annualCount - a.annualCount,
         beta: (a, b) => a.beta - b.beta,
         market: (a, b) => a.marketCorr - b.marketCorr,
         concentration: (a, b) => a.concentrationRisk - b.concentrationRisk
@@ -1775,7 +1777,7 @@ AUM / 容量 = 当前未接入</code>
       if (f.adjReturn >= state.requiredReturn) good.push("收益达标");
       if (f.histDd <= state.maxDrawdown) good.push("回撤适配");
       if (f.beta <= state.maxBeta) good.push("beta适配");
-      if (f.historyYears >= 4) good.push("历史较长");
+      if (f.annualCount >= 4) good.push("年度样本较多");
       if (f.marketCorr <= 0.35) good.push("大盘相关低");
       if (f.concentrationRisk <= 0.40) good.push("集中度低");
       if (f.scores.data >= 85) good.push("口径较好");
@@ -1786,7 +1788,7 @@ AUM / 容量 = 当前未接入</code>
       if (f.beta > state.maxBeta) bad.push("beta偏高");
       if (f.marketCorr > 0.70) bad.push("大盘相关高");
       if (f.concentrationRisk > 0.65) bad.push("集中度偏高");
-      if (f.historyYears < 1) bad.push("历史较短");
+      if (f.annualCount < 1) bad.push("年度样本较少");
       return { good, bad };
     }
     function openDetail(key) {
@@ -2076,7 +2078,7 @@ AUM / 容量 = 当前未接入</code>
       const limited = rows.slice(0, 90);
       document.getElementById("visibleCount").textContent = rows.length;
       if (!limited.length) {
-        body.innerHTML = `<tr><td colspan="13">没有匹配产品。</td></tr>`;
+        body.innerHTML = `<tr><td colspan="14">没有匹配产品。</td></tr>`;
         return;
       }
       body.innerHTML = limited.map(f => {
@@ -2096,11 +2098,12 @@ AUM / 容量 = 当前未接入</code>
             <td>
               <div class="product">
                 <strong>${f.product_name}</strong>
-                <span>${f.manager_fund_manager_strategy_label || "管理人字段缺失"} · 起始 ${f.fifty_underlying_start_date}</span>
+                <span>${f.manager_fund_manager_strategy_label || "管理人/策略标签缺失"}</span>
               </div>
             </td>
             <td><span class="tag ${sectionTags[f.section] || "gray"}">${f.section}</span><div class="panel-subtitle">${f.subsection || ""}</div></td>
-            <td><div class="score-cell"><div class="score-ring" style="--angle:${angle}deg"><span>${Math.round(f.scores.total)}</span></div><span class="panel-subtitle">可信 ${Math.round(f.scores.transferability)}</span></div></td>
+            <td><div class="score-cell"><div class="score-ring" style="--angle:${angle}deg"><span>${Math.round(f.scores.total)}</span></div></div></td>
+            <td class="num">${Math.round(f.scores.transferability)}</td>
             <td class="num ${f.adjReturn >= 0 ? "positive" : "negative"}">${fmtPct(f.adjReturn, 1)}</td>
             <td class="num ${f.rawReturn >= 0 ? "positive" : "negative"}">${fmtPct(f.rawReturn, 1)}</td>
             <td class="num">${fmtPct(f.vol, 1)}</td>
@@ -2108,8 +2111,8 @@ AUM / 容量 = 当前未接入</code>
             <td class="num">${fmtNum(f.beta, 2)}</td>
             <td class="num">${fmtNum(f.marketCorr, 2)}</td>
             <td class="num">${fmtNum(f.concentrationRisk, 2)}</td>
-            <td class="num">${fmtNum(f.historyYears, 1)} 年</td>
-            <td>${flags ? `<span class="tag amber">${flags}</span>` : `<span class="tag green">当前产品</span>`}</td>
+            <td class="num">${f.annualCount} 年</td>
+            <td>${flags ? `<span class="tag amber">${flags}</span>` : `<span class="tag green">无特殊标记</span>`}</td>
             <td><div class="reason-list">${reasonHtml || "中性"}</div></td>
           </tr>
         `;
