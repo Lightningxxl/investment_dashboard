@@ -957,7 +957,7 @@
         <div class="field">
           <div class="field-row"><span>Required return</span><strong><span id="requiredReturnVal"></span>%</strong></div>
           <input id="requiredReturn" type="range" min="-2" max="35" step="0.5" value="10">
-          <p class="field-help">组合调整后预期年化收益目标。当前用完整年度均值 + 可信度折扣估算。</p>
+          <p class="field-help">组合调整后预期年化收益目标。当前用完整年度均值 + 历史收益折扣估算。</p>
         </div>
         <div class="field">
           <div class="field-row"><span>Max drawdown</span><strong><span id="maxDrawdownVal"></span>%</strong></div>
@@ -1071,7 +1071,7 @@
         <div class="panel-head">
           <div>
             <h2 class="panel-title">模型计算口径</h2>
-            <p class="panel-subtitle">第 1 步定义组合合格线，第 2 步定义产品可信度偏好。</p>
+            <p class="panel-subtitle">第 1 步定义组合合格线，第 2 步定义产品评分偏好。</p>
           </div>
         </div>
         <div class="method">
@@ -1085,10 +1085,11 @@
           </div>
           <div class="method-item">
             <strong>2. 产品评分</strong>
-            <span>每个维度先根据 PDF 数据生成 0-100 维度评分，再按左侧 0-5 重要性归一化为综合评分；单品权重上限由综合评分和组合敞口集中度共同决定。</span>
+            <span>每个维度先根据 PDF 数据生成 0-100 维度评分，再按左侧 0-5 重要性归一化为综合评分；综合评分同时决定历史收益折扣和单品权重上限。</span>
             <code>产品综合评分 =
 Σ(维度评分 × 用户重要性)
-/ Σ(用户重要性)</code>
+/ Σ(用户重要性)
+历史收益折扣 = 45% + 55% × 产品综合评分 / 100</code>
           </div>
           <div class="method-item">
             <strong>3. 指标计算</strong>
@@ -1133,7 +1134,7 @@ AUM / 容量 = 当前未接入</code>
           </div>
           <div class="control-row">
             <span class="pill"><i data-lucide="filter" class="icon"></i>当前列表 <strong id="visibleCount">0</strong> 只</span>
-            <span class="pill"><i data-lucide="target" class="icon"></i>调整后收益 = 历史收益 × 可信度折扣</span>
+            <span class="pill"><i data-lucide="target" class="icon"></i>调整后收益 = 历史收益 × 历史收益折扣</span>
             <span class="pill"><i data-lucide="crosshair" class="icon"></i>Beta / 相关性相对当前 benchmark</span>
             <span class="pill"><i data-lucide="activity" class="icon"></i>波动 = 年度收益离散度 proxy</span>
           </div>
@@ -1145,7 +1146,7 @@ AUM / 容量 = 当前未接入</code>
                 <th>产品</th>
                 <th>策略</th>
                 <th>综合分</th>
-                <th>可信度</th>
+                <th>历史收益折扣</th>
                 <th>调整后收益</th>
                 <th>历史收益</th>
                 <th>波动 proxy</th>
@@ -1556,10 +1557,8 @@ AUM / 容量 = 当前未接入</code>
       ) / totalWeight;
       const score = Object.values(weights).some(v => v > 0) ? rawScore : 50;
 
-      const transferability = Object.values(weights).some(v => v > 0)
-        ? clamp(score * 0.90 + data * 0.10, 0, 100)
-        : clamp(mean([history, market, concentration, data]), 0, 100);
-      const haircut = 0.45 + 0.55 * transferability / 100;
+      const discountScore = clamp(score, 0, 100);
+      const haircut = 0.45 + 0.55 * discountScore / 100;
       const adjReturn = fund.rawReturn >= 0 ? fund.rawReturn * haircut : fund.rawReturn;
       const capRule = activeConcentrationProfile().caps.find(rule => score >= rule.minScore);
       const cap = capRule ? capRule.cap : 0.05;
@@ -1568,7 +1567,7 @@ AUM / 容量 = 当前未接入</code>
         beta,
         marketCorr,
         betaSampleYears: betaStats.betaSampleYears,
-        scores: { history, market, concentration, data, total: score, transferability },
+        scores: { history, market, concentration, data, total: score, discountScore },
         adjReturn,
         haircut,
         cap
@@ -1905,7 +1904,7 @@ AUM / 容量 = 当前未接入</code>
         <div class="detail-block">
           <strong>产品评分如何进入组合</strong>
           <p>第 2 步先把每只产品算成综合评分；综合评分越高，历史收益折扣越少。单品权重上限由产品综合评分和左侧组合敞口集中度共同决定。组合模拟时，每只产品的调整后收益和权重上限都会参与计算。</p>
-          <div class="detail-rule">产品综合评分 = Σ(维度评分 × 用户重要性) / Σ(用户重要性)<br>调整后收益 = 历史收益 × 可信度折扣</div>
+          <div class="detail-rule">产品综合评分 = Σ(维度评分 × 用户重要性) / Σ(用户重要性)<br>历史收益折扣 = 45% + 55% × 产品综合评分 / 100<br>调整后收益 = 历史收益 × 历史收益折扣</div>
         </div>
         <div class="detail-block">
           <strong>持仓拆解</strong>
@@ -1953,7 +1952,7 @@ AUM / 容量 = 当前未接入</code>
         .sort((a, b) => state.weights[b.key] - state.weights[a.key]);
       const summary = document.getElementById("weightSummary");
       if (!active.length) {
-        summary.innerHTML = `<strong>当前未启用评分项。</strong><br>至少把一个维度调到 1 分以上，组合推荐会恢复产品可信度排序。`;
+        summary.innerHTML = `<strong>当前未启用评分项。</strong><br>至少把一个维度调到 1 分以上，组合推荐会恢复产品综合分排序。`;
       } else {
         summary.innerHTML = `<strong>分数代表相对重要性。</strong><br>0 = 不纳入评分；1 = 轻度参考；3 = 正常看重；5 = 核心判断项。`;
       }
@@ -2103,7 +2102,7 @@ AUM / 容量 = 当前未接入</code>
             </td>
             <td><span class="tag ${sectionTags[f.section] || "gray"}">${f.section}</span><div class="panel-subtitle">${f.subsection || ""}</div></td>
             <td><div class="score-cell"><div class="score-ring" style="--angle:${angle}deg"><span>${Math.round(f.scores.total)}</span></div></div></td>
-            <td class="num">${Math.round(f.scores.transferability)}</td>
+            <td class="num">${Math.round(f.haircut * 100)}%</td>
             <td class="num ${f.adjReturn >= 0 ? "positive" : "negative"}">${fmtPct(f.adjReturn, 1)}</td>
             <td class="num ${f.rawReturn >= 0 ? "positive" : "negative"}">${fmtPct(f.rawReturn, 1)}</td>
             <td class="num">${fmtPct(f.vol, 1)}</td>
