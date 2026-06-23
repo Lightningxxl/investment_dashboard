@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-APP_DIR="${APP_DIR:-/home/xavierx/www/investment_dashboard}"
+APP_DIR="${APP_DIR:-/home/xavierx/www/zy-sj-dashboard}"
 REPO_URL="${REPO_URL:-https://github.com/Lightningxxl/investment_dashboard.git}"
 BRANCH="${BRANCH:-main}"
 

@@ -33,8 +33,8 @@ python3 -m http.server 8765
 ```bash
 ssh ff2
 mkdir -p /home/xavierx/www
-git clone https://github.com/Lightningxxl/investment_dashboard.git /home/xavierx/www/investment_dashboard
-cd /home/xavierx/www/investment_dashboard
+git clone https://github.com/Lightningxxl/investment_dashboard.git /home/xavierx/www/zy-sj-dashboard
+cd /home/xavierx/www/zy-sj-dashboard
 python3 -m http.server 20242 --bind 127.0.0.1
 ```
 
@@ -42,8 +42,8 @@ python3 -m http.server 20242 --bind 127.0.0.1
 
 ```bash
 ssh ff2
-cd /home/xavierx/www/investment_dashboard
+cd /home/xavierx/www/zy-sj-dashboard
 git pull --ff-only origin main
 ```
 
-如果继续沿用现有 `zy-sj-dashboard` systemd 服务，把服务的 `WorkingDirectory` 和 `--directory` 指到 git clone 出来的目录即可。
+当前 ff2 的 `zy-sj-dashboard` user systemd 服务可以直接沿用这个目录。
