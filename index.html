@@ -1,0 +1,2244 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>子基金组合工作台 V2</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23155e75'/%3E%3Cpath d='M16 44h32M16 32h24M16 20h14' stroke='white' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E">
+  <script src="./lucide-lite.js"></script>
+  <script src="./china50_fund_pool_data.js"></script>
+  <style>
+    :root {
+      --topbar-h: 72px;
+      --bg: #f5f7f8;
+      --panel: #ffffff;
+      --ink: #17211f;
+      --muted: #66736f;
+      --line: #d9e0df;
+      --line-soft: #edf1f0;
+      --teal: #0f766e;
+      --teal-soft: #d9f3ef;
+      --blue: #2563eb;
+      --blue-soft: #dbeafe;
+      --amber: #b45309;
+      --amber-soft: #fef0c7;
+      --rose: #be123c;
+      --rose-soft: #ffe4e6;
+      --green: #15803d;
+      --green-soft: #dcfce7;
+      --violet: #7c3aed;
+      --violet-soft: #ede9fe;
+      --shadow: 0 16px 44px rgba(24, 36, 33, 0.08);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    html {
+      height: 100%;
+      overflow: hidden;
+    }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      min-width: 320px;
+      height: 100%;
+      overflow: hidden;
+    }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    .icon { width: 16px; height: 16px; flex: 0 0 auto; stroke-width: 2; }
+
+    .topbar {
+      height: var(--topbar-h);
+      min-height: var(--topbar-h);
+      padding: 14px 22px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255,255,255,.94);
+      backdrop-filter: blur(14px);
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+    .mark {
+      width: 38px;
+      height: 38px;
+      border-radius: 8px;
+      color: #fff;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, #155e75, #0f766e 55%, #b45309);
+      box-shadow: 0 10px 24px rgba(15, 118, 110, .22);
+      flex: 0 0 auto;
+    }
+    .brand h1 {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.2;
+      letter-spacing: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .brand p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .brand > div { min-width: 0; }
+    .top-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      overflow-x: auto;
+      max-width: 52vw;
+    }
+    .pill, .btn {
+      min-height: 34px;
+      padding: 0 11px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #fff;
+      color: var(--ink);
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+    .btn {
+      border-radius: 8px;
+      font-weight: 700;
+    }
+    .btn.full {
+      width: 100%;
+      margin-top: 12px;
+    }
+    .btn.primary {
+      background: var(--teal);
+      border-color: var(--teal);
+      color: #fff;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 340px minmax(0, 1fr);
+      gap: 18px;
+      padding: 18px;
+      align-items: stretch;
+      min-width: 0;
+      height: calc(100vh - var(--topbar-h));
+      overflow: hidden;
+    }
+    .sidebar {
+      display: grid;
+      gap: 14px;
+      align-content: start;
+      min-height: 0;
+      overflow-y: auto;
+      padding-right: 4px;
+      scrollbar-gutter: stable;
+    }
+    .main {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      min-width: 0;
+      min-height: 0;
+      overflow-y: auto;
+      padding-right: 4px;
+      scrollbar-gutter: stable;
+    }
+    .main > * {
+      flex: 0 0 auto;
+    }
+    .panel, .table-shell, .stat {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+    .panel { padding: 16px; }
+    .panel-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .panel-title {
+      margin: 0;
+      font-size: 15px;
+      line-height: 1.3;
+      letter-spacing: 0;
+    }
+    .panel-subtitle {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .step-badge {
+      width: 24px;
+      height: 24px;
+      border-radius: 7px;
+      display: inline-grid;
+      place-items: center;
+      background: var(--teal-soft);
+      color: #07504b;
+      font-size: 12px;
+      font-weight: 800;
+      margin-right: 8px;
+    }
+    .field {
+      display: grid;
+      gap: 8px;
+      padding-top: 12px;
+      border-top: 1px solid var(--line-soft);
+      margin-top: 12px;
+    }
+    .field:first-of-type {
+      border-top: 0;
+      padding-top: 0;
+      margin-top: 0;
+    }
+    .field-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .field-row strong {
+      color: var(--ink);
+      font-size: 13px;
+      font-variant-numeric: tabular-nums;
+    }
+    .field-help {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+      margin: 0;
+    }
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--teal);
+    }
+    .switch-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--line-soft);
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .switch {
+      position: relative;
+      width: 44px;
+      height: 24px;
+      flex: 0 0 auto;
+    }
+    .switch input { display: none; }
+    .track {
+      position: absolute;
+      inset: 0;
+      border-radius: 999px;
+      background: #cbd5d3;
+    }
+    .track::after {
+      content: "";
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      top: 3px;
+      left: 3px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 2px 7px rgba(0,0,0,.2);
+      transition: .16s ease;
+    }
+    .switch input:checked + .track { background: var(--teal); }
+    .switch input:checked + .track::after { transform: translateX(20px); }
+
+    .weight-grid {
+      display: grid;
+      gap: 10px;
+    }
+    .weight-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 11px;
+      background: #fff;
+      display: grid;
+      gap: 8px;
+    }
+    .weight-card.disabled {
+      opacity: .6;
+      background: #f9fbfb;
+    }
+    .weight-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: center;
+    }
+    .weight-top strong {
+      font-size: 13px;
+      line-height: 1.3;
+    }
+    .weight-top span {
+      font-size: 12px;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+    }
+    .weight-title {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+    }
+    .detail-btn {
+      width: 20px;
+      height: 20px;
+      border: 1px solid var(--line);
+      border-radius: 50%;
+      background: #fff;
+      color: var(--muted);
+      display: inline-grid;
+      place-items: center;
+      font-size: 12px;
+      font-weight: 900;
+      padding: 0;
+      flex: 0 0 auto;
+    }
+    .detail-btn:hover {
+      border-color: var(--teal);
+      color: var(--teal);
+      background: var(--teal-soft);
+    }
+    .weight-summary {
+      margin-bottom: 12px;
+      padding: 10px 11px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcfc;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+    .weight-summary strong {
+      color: var(--ink);
+    }
+    .scale-row {
+      display: flex;
+      justify-content: space-between;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1;
+    }
+    .battery-control {
+      display: grid;
+      grid-template-columns: 34px minmax(0, 1fr);
+      gap: 8px;
+      align-items: center;
+    }
+    .zero-btn {
+      min-height: 28px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: #fff;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .zero-btn.active {
+      background: var(--ink);
+      border-color: var(--ink);
+      color: #fff;
+    }
+    .battery-bar {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 4px;
+      padding: 4px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #f8fbfb;
+    }
+    .battery-cell {
+      height: 20px;
+      min-height: 20px;
+      border: 0;
+      border-radius: 5px;
+      background: #e3e9e8;
+      padding: 0;
+    }
+    .battery-cell.filled {
+      background: var(--teal);
+    }
+    .battery-cell.filled:nth-child(4),
+    .battery-cell.filled:nth-child(5) {
+      background: #0b625c;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .stat {
+      min-height: 92px;
+      padding: 14px;
+      display: grid;
+      align-content: space-between;
+    }
+    .stat span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .stat strong {
+      margin-top: 8px;
+      display: block;
+      font-size: clamp(22px, 3vw, 31px);
+      line-height: 1;
+      letter-spacing: 0;
+      font-variant-numeric: tabular-nums;
+    }
+    .stat small {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .portfolio-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 14px;
+      display: grid;
+      gap: 12px;
+    }
+    .portfolio-card.clickable {
+      cursor: pointer;
+    }
+    .portfolio-card.clickable:hover {
+      border-color: rgba(15, 118, 110, .55);
+      box-shadow: 0 14px 38px rgba(15, 118, 110, .12);
+    }
+    .portfolio-card.clickable:focus-visible {
+      outline: 3px solid rgba(15, 118, 110, .22);
+      outline-offset: 2px;
+    }
+    .portfolio-card.selected {
+      border-color: var(--teal);
+      box-shadow: 0 0 0 3px rgba(15,118,110,.12);
+    }
+    .portfolio-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .portfolio-head h3 {
+      margin: 0;
+      font-size: 15px;
+      line-height: 1.3;
+    }
+    .portfolio-head p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+    .metric-row {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .mini-metric {
+      border: 1px solid var(--line-soft);
+      border-radius: 8px;
+      padding: 8px;
+      min-height: 58px;
+    }
+    .mini-metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.3;
+    }
+    .mini-metric strong {
+      display: block;
+      margin-top: 5px;
+      font-size: 15px;
+      font-variant-numeric: tabular-nums;
+    }
+    .holdings {
+      display: grid;
+      gap: 7px;
+    }
+    .holding {
+      display: grid;
+      grid-template-columns: 48px minmax(0, 1fr) 44px;
+      gap: 8px;
+      align-items: center;
+      font-size: 12px;
+    }
+    .holding-name {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .holding-bar {
+      height: 8px;
+      border-radius: 999px;
+      background: var(--line-soft);
+      overflow: hidden;
+    }
+    .holding-bar i {
+      display: block;
+      height: 100%;
+      border-radius: inherit;
+      background: var(--teal);
+    }
+
+    .chart-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 14px;
+    }
+    .chart-wrap {
+      height: 310px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background:
+        linear-gradient(#fff,#fff) padding-box,
+        repeating-linear-gradient(0deg, transparent 0 39px, rgba(103,115,111,.1) 40px),
+        repeating-linear-gradient(90deg, transparent 0 59px, rgba(103,115,111,.1) 60px);
+      overflow: hidden;
+      position: relative;
+    }
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      background: var(--teal);
+      flex: 0 0 auto;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      min-height: 23px;
+      padding: 0 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+    .tag.teal { color: #0f5f58; background: var(--teal-soft); }
+    .tag.blue { color: #1d4ed8; background: var(--blue-soft); }
+    .tag.amber { color: #92400e; background: var(--amber-soft); }
+    .tag.rose { color: #9f1239; background: var(--rose-soft); }
+    .tag.green { color: #166534; background: var(--green-soft); }
+    .tag.violet { color: #6d28d9; background: var(--violet-soft); }
+    .tag.gray { color: #4b5563; background: #edf1f0; }
+
+    .control-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+    .search {
+      position: relative;
+      flex: 1 1 260px;
+      min-width: 0;
+    }
+    .search .icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+    }
+    .search input, select {
+      width: 100%;
+      min-height: 38px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--ink);
+      padding: 0 12px;
+    }
+    .search input { padding-left: 36px; }
+    select { width: auto; min-width: 170px; }
+    .field select { width: 100%; }
+
+    .table-shell {
+      overflow: hidden;
+      min-width: 0;
+    }
+    .table-toolbar {
+      padding: 14px;
+      border-bottom: 1px solid var(--line);
+      display: grid;
+      gap: 10px;
+    }
+    .table-wrap {
+      max-width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    table {
+      width: 100%;
+      min-width: 1700px;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    th, td {
+      padding: 12px 14px;
+      text-align: left;
+      border-bottom: 1px solid var(--line-soft);
+      vertical-align: middle;
+    }
+    th {
+      background: #fbfcfc;
+      color: var(--muted);
+      font-weight: 800;
+      white-space: nowrap;
+    }
+    tbody tr:hover { background: #f8fbfb; }
+    th:last-child, td:last-child {
+      width: 280px;
+      min-width: 280px;
+    }
+    .product {
+      display: grid;
+      gap: 4px;
+      min-width: 260px;
+    }
+    .product strong {
+      font-size: 13px;
+      line-height: 1.35;
+    }
+    .product span {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+    .num {
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+    .positive { color: var(--green); font-weight: 800; }
+    .negative { color: var(--rose); font-weight: 800; }
+    .score-cell {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 100px;
+    }
+    .score-ring {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: conic-gradient(var(--teal) 0deg, var(--teal) var(--angle), #e8eeee var(--angle), #e8eeee 360deg);
+      position: relative;
+      font-size: 12px;
+      font-weight: 900;
+      font-variant-numeric: tabular-nums;
+    }
+    .score-ring::before {
+      content: "";
+      position: absolute;
+      inset: 4px;
+      border-radius: inherit;
+      background: #fff;
+    }
+    .score-ring span { position: relative; }
+    .reason-list {
+      width: 260px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+    .reason-list b { color: var(--ink); }
+
+    .method {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+    .method-item {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      background: #fff;
+    }
+    .method-item strong {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 6px;
+    }
+    .method-item span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    .method-item code {
+      display: block;
+      margin-top: 7px;
+      padding: 8px;
+      border-radius: 7px;
+      background: #f6f8f8;
+      color: var(--ink);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 11px;
+      line-height: 1.45;
+      white-space: pre-wrap;
+    }
+    .detail-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 60;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background: rgba(15, 23, 42, .30);
+    }
+    .detail-modal[hidden] { display: none; }
+    .detail-card {
+      width: min(620px, 100%);
+      max-height: min(720px, 86vh);
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      box-shadow: 0 26px 80px rgba(15, 23, 42, .24);
+      padding: 18px;
+    }
+    .detail-card.wide {
+      width: min(940px, 100%);
+    }
+    .detail-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 12px;
+    }
+    .detail-head h3 {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.25;
+    }
+    .detail-close {
+      width: 32px;
+      height: 32px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--muted);
+      font-size: 20px;
+      line-height: 1;
+      padding: 0;
+    }
+    .detail-block {
+      padding-top: 12px;
+      border-top: 1px solid var(--line-soft);
+      margin-top: 12px;
+    }
+    .detail-block strong {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 5px;
+    }
+    .detail-block p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .detail-metric {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      background: #fbfcfc;
+    }
+    .detail-metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+    .detail-metric strong {
+      display: block;
+      margin-top: 5px;
+      font-size: 18px;
+      font-variant-numeric: tabular-nums;
+    }
+    .detail-table-wrap {
+      max-width: 100%;
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+    }
+    .detail-table {
+      width: 100%;
+      min-width: 720px;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    .detail-table th,
+    .detail-table td {
+      padding: 9px 10px;
+      border-bottom: 1px solid var(--line-soft);
+      text-align: left;
+      vertical-align: top;
+    }
+    .detail-table th {
+      background: #fbfcfc;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+    .detail-table tr:last-child td {
+      border-bottom: 0;
+    }
+    .detail-table .num {
+      white-space: nowrap;
+    }
+    .detail-rule {
+      margin-top: 8px;
+      padding: 10px;
+      border-radius: 8px;
+      background: #f6f8f8;
+      color: var(--ink);
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    @media (max-width: 1180px) {
+      html, body {
+        height: auto;
+        overflow: auto;
+      }
+      .topbar {
+        position: sticky;
+      }
+      .layout {
+        grid-template-columns: 1fr;
+        height: auto;
+        overflow: visible;
+        align-items: start;
+      }
+      .sidebar {
+        position: static;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        overflow: visible;
+        padding-right: 0;
+      }
+      .main {
+        overflow: visible;
+        padding-right: 0;
+      }
+      .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .cards-grid, .chart-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 740px) {
+      .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+      .brand { width: 100%; }
+      .top-actions { max-width: 100%; width: 100%; }
+      .layout { padding: 12px; }
+      .sidebar, .method, .stats-grid { grid-template-columns: 1fr; }
+      .detail-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .metric-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .chart-wrap { height: 260px; }
+      .table-toolbar { align-items: stretch; }
+      select, .btn { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="mark"><i data-lucide="sliders-horizontal" class="icon"></i></div>
+      <div>
+        <h1>子基金组合工作台 V2</h1>
+        <p>组合目标 -> 评分偏好 -> 有效前沿/推荐组合 · 数据来自中国50研选池 PDF</p>
+      </div>
+    </div>
+    <div class="top-actions">
+      <span class="pill"><i data-lucide="database" class="icon"></i><strong id="dataCount">0</strong> 只产品</span>
+      <span class="pill"><i data-lucide="crosshair" class="icon"></i>Beta: <strong id="benchmarkPill">-</strong></span>
+      <span class="pill"><i data-lucide="shield-check" class="icon"></i>年度波动/相关性为 proxy</span>
+      <a class="pill" href="./china50_fund_pool_data.csv"><i data-lucide="file-check-2" class="icon"></i>CSV</a>
+    </div>
+  </header>
+
+  <main class="layout">
+    <aside class="sidebar">
+      <section class="panel">
+        <div class="panel-head">
+          <div>
+            <h2 class="panel-title"><span class="step-badge">1</span>组合目标</h2>
+            <p class="panel-subtitle">这些是组合优化的硬约束。收益目标越高，通常需要放宽回撤、波动或 beta 暴露。</p>
+          </div>
+        </div>
+
+        <div class="field">
+          <div class="field-row"><span>Required return</span><strong><span id="requiredReturnVal"></span>%</strong></div>
+          <input id="requiredReturn" type="range" min="-2" max="35" step="0.5" value="10">
+          <p class="field-help">组合调整后预期年化收益目标。当前用完整年度均值 + 可信度折扣估算。</p>
+        </div>
+        <div class="field">
+          <div class="field-row"><span>Max drawdown</span><strong><span id="maxDrawdownVal"></span>%</strong></div>
+          <input id="maxDrawdown" type="range" min="3" max="40" step="0.5" value="15">
+          <p class="field-help">组合最大回撤预算。当前用年度净值回撤和产品历史回撤做 proxy。</p>
+        </div>
+        <div class="field">
+          <div class="field-row"><span>Max standard deviation</span><strong><span id="maxVolVal"></span>%</strong></div>
+          <input id="maxVol" type="range" min="3" max="45" step="0.5" value="18">
+          <p class="field-help">组合波动上限。PDF 没有月度净值，当前用年度收益离散度估算。</p>
+        </div>
+        <div class="field">
+          <div class="field-row"><span>Beta benchmark</span><strong id="betaBenchmarkLabel"></strong></div>
+          <select id="betaBenchmark"></select>
+          <p class="field-help">组合 beta 和低大盘相关性都相对这个基准计算。切换后会实时重算产品分数和推荐组合。</p>
+        </div>
+        <div class="field">
+          <div class="field-row"><span>Max beta exposure</span><strong><span id="maxBetaVal"></span></strong></div>
+          <input id="maxBeta" type="range" min="0" max="1.5" step="0.05" value="0.55">
+          <p class="field-help">相对当前 Beta benchmark 的组合 beta 上限。样本不足时会引入策略 beta 先验。</p>
+        </div>
+        <div class="field">
+          <div class="field-row"><span>组合敞口集中度</span><strong id="concentrationModeLabel"></strong></div>
+          <select id="concentrationMode"></select>
+          <p class="field-help" id="concentrationModeHelp"></p>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <div>
+            <h2 class="panel-title"><span class="step-badge">2</span>评分偏好</h2>
+            <p class="panel-subtitle">给每个产品维度 0-5 分重要性。系统自动归一化，相同分值代表同等看重。</p>
+          </div>
+        </div>
+        <div class="weight-summary" id="weightSummary"></div>
+        <div class="weight-grid" id="weightControls"></div>
+        <label class="switch-row">
+          <span>暂停申购产品进入优化池</span>
+          <span class="switch"><input id="allowPaused" type="checkbox"><span class="track"></span></span>
+        </label>
+        <button class="btn full" id="resetBtn"><i data-lucide="rotate-ccw" class="icon"></i>重置参数</button>
+      </section>
+    </aside>
+
+    <section class="main">
+      <section class="stats-grid">
+        <article class="stat">
+          <span>合格候选</span>
+          <strong id="eligibleCount">0</strong>
+          <small>满足申购状态、基础数据和评分条件</small>
+        </article>
+        <article class="stat">
+          <span>可行组合</span>
+          <strong id="feasibleCount">0</strong>
+          <small>同时满足目标收益、回撤、波动和 beta 约束</small>
+        </article>
+        <article class="stat">
+          <span>目标压力</span>
+          <strong id="goalPressure">-</strong>
+          <small id="goalPressureText">收益目标与风险预算的联动提示</small>
+        </article>
+        <article class="stat">
+          <span>推荐组合</span>
+          <strong id="recommendedName">-</strong>
+          <small>从模拟组合中按目标适配度选择</small>
+        </article>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <div>
+            <h2 class="panel-title"><span class="step-badge">3</span>推荐组合</h2>
+            <p class="panel-subtitle">评分偏好影响收益折扣和单品权重上限；组合目标决定哪些组合可行。</p>
+          </div>
+        </div>
+        <div class="cards-grid" id="portfolioCards"></div>
+      </section>
+
+      <section class="chart-grid">
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <h2 class="panel-title">组合有效前沿 proxy</h2>
+              <p class="panel-subtitle">横轴为组合年度波动 proxy，纵轴为调整后预期收益。</p>
+            </div>
+            <span class="tag teal">Portfolio</span>
+          </div>
+          <div class="chart-wrap"><canvas id="frontierCanvas"></canvas></div>
+          <div class="legend">
+            <span><i class="dot" style="background:#d1d5db"></i>模拟组合</span>
+            <span><i class="dot" style="background:#0f766e"></i>满足目标</span>
+            <span><i class="dot" style="background:#be123c"></i>推荐组合</span>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-head">
+            <div>
+              <h2 class="panel-title">产品收益 - 回撤边界</h2>
+              <p class="panel-subtitle">横轴为历史最大回撤绝对值，纵轴为调整后预期收益，点大小代表产品分数。</p>
+            </div>
+            <span class="tag blue">Product</span>
+          </div>
+          <div class="chart-wrap"><canvas id="productCanvas"></canvas></div>
+          <div class="legend" id="sectionLegend"></div>
+        </article>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <div>
+            <h2 class="panel-title">模型计算口径</h2>
+            <p class="panel-subtitle">第 1 步定义组合合格线，第 2 步定义产品可信度偏好。</p>
+          </div>
+        </div>
+        <div class="method">
+          <div class="method-item">
+            <strong>1. 组合目标</strong>
+            <span>用于过滤模拟组合。收益、回撤、波动和 beta 同时满足时，组合进入可行集合。</span>
+            <code>组合收益 >= Required return
+组合回撤 <= Max drawdown
+组合波动 <= Max stdev
+组合 beta <= Max beta</code>
+          </div>
+          <div class="method-item">
+            <strong>2. 产品评分</strong>
+            <span>每个维度先根据 PDF 数据生成 0-100 维度评分，再按左侧 0-5 重要性归一化为综合评分；单品权重上限由综合评分和组合敞口集中度共同决定。</span>
+            <code>产品综合评分 =
+Σ(维度评分 × 用户重要性)
+/ Σ(用户重要性)</code>
+          </div>
+          <div class="method-item">
+            <strong>3. 指标计算</strong>
+            <span>当前 PDF 只有年度收益，所以波动、beta 和相关性均为年度 proxy。</span>
+            <code>历史收益 = 年度收益均值
+波动 = 年度收益标准差
+Beta = Cov(产品, benchmark) / Var(benchmark)
+相关性 = Corr(产品, benchmark)</code>
+          </div>
+          <div class="method-item">
+            <strong>4. 当前限制</strong>
+            <span>没有月度净值、持仓行业和 AUM 数据；集中度风险、相关性矩阵和容量质量仍是 proxy。</span>
+            <code>集中度 = 策略分类 + 标签 proxy
+相关性矩阵 = 年度收益 + 策略关系
+AUM / 容量 = 当前未接入</code>
+          </div>
+        </div>
+      </section>
+
+      <section class="table-shell">
+        <div class="table-toolbar">
+          <div class="control-row">
+            <div class="search">
+              <i data-lucide="search" class="icon"></i>
+              <input id="searchInput" type="search" placeholder="搜索管理人、产品、策略标签">
+            </div>
+            <select id="sectionFilter"></select>
+            <select id="statusFilter" aria-label="申购状态筛选">
+              <option value="open">仅可申购</option>
+              <option value="all">全部申购状态</option>
+              <option value="paused">仅暂停申购</option>
+            </select>
+            <select id="sortSelect">
+              <option value="score">综合分最高</option>
+              <option value="adjReturn">调整后收益最高</option>
+              <option value="risk">风险最低</option>
+              <option value="history">历史最长</option>
+              <option value="beta">Beta 最低</option>
+              <option value="market">相关性最低</option>
+              <option value="concentration">集中度风险最低</option>
+            </select>
+          </div>
+          <div class="control-row">
+            <span class="pill"><i data-lucide="filter" class="icon"></i>当前列表 <strong id="visibleCount">0</strong> 只</span>
+            <span class="pill"><i data-lucide="target" class="icon"></i>调整后收益 = 历史收益 × 可信度折扣</span>
+            <span class="pill"><i data-lucide="crosshair" class="icon"></i>Beta / 相关性相对当前 benchmark</span>
+            <span class="pill"><i data-lucide="activity" class="icon"></i>波动 = 年度收益离散度 proxy</span>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>产品</th>
+                <th>策略</th>
+                <th>综合分</th>
+                <th>调整后收益</th>
+                <th>历史收益</th>
+                <th>波动 proxy</th>
+                <th>历史回撤</th>
+                <th>Beta</th>
+                <th>相关性</th>
+                <th>集中度风险 proxy</th>
+                <th>历史长度</th>
+                <th>口径</th>
+                <th>解释</th>
+              </tr>
+            </thead>
+            <tbody id="fundRows"></tbody>
+          </table>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <div class="detail-modal" id="detailModal" hidden>
+    <div class="detail-card" role="dialog" aria-modal="true" aria-labelledby="detailTitle">
+      <div class="detail-head">
+        <div>
+          <h3 id="detailTitle"></h3>
+          <p class="panel-subtitle" id="detailSubtitle"></p>
+        </div>
+        <button class="detail-close" id="detailClose" type="button" aria-label="关闭">×</button>
+      </div>
+      <div id="detailBody"></div>
+    </div>
+  </div>
+
+  <script>
+    const source = window.CHINA50_FUND_POOL || { metadata: {}, records: [] };
+    const reportDate = new Date(`${source.metadata.report_date || "2026-06-18"}T00:00:00`);
+    const yearKeys = [
+      ["2019", "return_2019_pct"],
+      ["2020", "return_2020_pct"],
+      ["2021", "return_2021_pct"],
+      ["2022", "return_2022_pct"],
+      ["2023", "return_2023_pct"],
+      ["2024", "return_2024_pct"],
+      ["2025", "return_2025_pct"]
+    ];
+    const sectionColors = {
+      "主观选股": "#be123c",
+      "主观选股-全球配置工具": "#e11d48",
+      "量化选股": "#2563eb",
+      "债券主动投资": "#15803d",
+      "债券主动投资-全球配置工具": "#16a34a",
+      "市场中性": "#0f766e",
+      "多空策略": "#0891b2",
+      "管理期货": "#b45309",
+      "多策略": "#7c3aed",
+      "宏观及商品策略III": "#9333ea",
+      "灵活配置型": "#64748b",
+      "全球配置工具": "#0f172a",
+      "REITs": "#a16207"
+    };
+    const sectionTags = {
+      "主观选股": "rose",
+      "主观选股-全球配置工具": "rose",
+      "量化选股": "blue",
+      "债券主动投资": "green",
+      "债券主动投资-全球配置工具": "green",
+      "市场中性": "teal",
+      "多空策略": "teal",
+      "管理期货": "amber",
+      "多策略": "violet",
+      "宏观及商品策略III": "violet",
+      "灵活配置型": "gray",
+      "全球配置工具": "gray",
+      "REITs": "amber"
+    };
+    const defaultState = {
+      requiredReturn: 10,
+      maxDrawdown: 15,
+      maxVol: 18,
+      maxBeta: 0.55,
+      betaBenchmark: "中证800指数",
+      concentrationMode: "balanced",
+      allowPaused: false,
+      section: "全部",
+      status: "open",
+      search: "",
+      sort: "score",
+      weights: {
+        history: 4,
+        market: 4,
+        concentration: 4,
+        data: 3
+      }
+    };
+    const state = structuredClone(defaultState);
+    const concentrationProfiles = {
+      diversified: {
+        label: "分散",
+        range: "7-8 只",
+        help: "更偏分散配置。目标 7-8 只；最高分产品单品上限 20%，单一策略大类上限 45%。",
+        minFunds: 7,
+        maxFunds: 8,
+        sectionCap: 0.45,
+        caps: [
+          { minScore: 85, cap: 0.20 },
+          { minScore: 75, cap: 0.17 },
+          { minScore: 65, cap: 0.13 },
+          { minScore: 55, cap: 0.08 },
+          { minScore: -Infinity, cap: 0.04 }
+        ]
+      },
+      balanced: {
+        label: "平衡",
+        range: "6-8 只",
+        help: "默认口径。目标 6-8 只；最高分产品单品上限 25%，单一策略大类上限 55%。",
+        minFunds: 6,
+        maxFunds: 8,
+        sectionCap: 0.55,
+        caps: [
+          { minScore: 85, cap: 0.25 },
+          { minScore: 75, cap: 0.20 },
+          { minScore: 65, cap: 0.16 },
+          { minScore: 55, cap: 0.10 },
+          { minScore: -Infinity, cap: 0.05 }
+        ]
+      },
+      focused: {
+        label: "适度集中",
+        range: "5-6 只",
+        help: "更贴近个人投资者的集中持有。目标 5-6 只；最高分产品单品上限 30%，单一策略大类上限 65%。",
+        minFunds: 5,
+        maxFunds: 6,
+        sectionCap: 0.65,
+        caps: [
+          { minScore: 85, cap: 0.30 },
+          { minScore: 75, cap: 0.25 },
+          { minScore: 65, cap: 0.18 },
+          { minScore: 55, cap: 0.12 },
+          { minScore: -Infinity, cap: 0.06 }
+        ]
+      }
+    };
+    function activeConcentrationProfile() {
+      return concentrationProfiles[state.concentrationMode] || concentrationProfiles.balanced;
+    }
+    const weightDefinitions = [
+      { key: "history", label: "历史样本长度", help: "50底层起始日和完整年度数量。历史越长、跨年度越多，过往表现参考价值越高。" },
+      { key: "market", label: "低大盘相关性", help: "分数越高，越偏好相对当前 Beta benchmark 的低相关、低 beta 产品。0 分代表这个维度不参与评分。" },
+      { key: "concentration", label: "低集中度风险", help: "分数越高，越偏好策略、资产、行业或风格更分散的产品。当前用策略分类和标签估算。" },
+      { key: "data", label: "数据口径质量", help: "[1] 拼接净值扣分，[2] 费后口径加分，字段缺失或样本过少会降低口径分。" }
+    ];
+    const scoringDetails = {
+      history: {
+        title: "历史样本长度",
+        subtitle: "衡量历史业绩样本是否足够长。",
+        source: "这个指标通过 PDF 里的 50底层统计起始日，以及 2019-2025 各完整年度收益字段得到。",
+        processing: "历史样本越完善，维度评分越高。这里同时看两个东西：起始日至报告日的年限，以及可用完整年度数量。",
+        usage: "左侧重要性越高，产品综合评分越偏向历史样本长的产品；历史短的新产品即使收益高，调整后收益和权重上限也会更受约束。"
+      },
+      market: {
+        title: "低大盘相关性",
+        subtitle: "衡量产品相对当前 Beta benchmark 的低相关、低 beta 特征。",
+        source: "这个指标通过产品年度收益和左侧 Beta benchmark 的年度收益得到。样本不足时，会引入策略分类的 beta 先验。",
+        processing: "相对当前 benchmark 的 beta / 相关性越低，维度评分越高。切换 benchmark 后，这个指标会实时重算。",
+        usage: "左侧重要性越高，产品综合评分越偏向市场中性、CTA、债券、多策略等低相关产品；高 beta 产品的收益假设和权重上限会被压低。"
+      },
+      concentration: {
+        title: "低集中度风险",
+        subtitle: "衡量产品是否避免单一资产、行业、风格或策略暴露。",
+        source: "这个指标通过 PDF 里的策略分类、策略标签和产品名称得到。当前 PDF 没有持仓行业明细。",
+        processing: "策略、资产、行业、风格越分散，维度评分越高。多策略、全球配置、市场中性、CTA 等标签更占优；单一权益、主题、行业、REITs、转债等会体现为更高集中度 proxy。",
+        usage: "左侧重要性越高，产品综合评分越偏向暴露更分散的产品；集中在单一市场或风格的产品会降低综合评分。"
+      },
+      data: {
+        title: "数据口径质量",
+        subtitle: "衡量净值和业绩数据是否干净、可比。",
+        source: "这个指标通过 PDF 里的 [1][2] 标记、字段完整度、年度样本数量和抽取质量备注得到。",
+        processing: "数据口径越干净、越可比，维度评分越高。[1] 拼接净值会扣分；[2] 费后口径会加分；年度样本少、字段缺失或抽取备注会扣分。",
+        usage: "左侧重要性越高，产品综合评分越偏向口径清晰、数据更可比的产品；拼接净值或字段不足产品会更难拿到高分。"
+      }
+    };
+
+    function toNum(value) {
+      if (value === null || value === undefined || value === "" || value === "-") return null;
+      const n = Number(String(value).replace("%", ""));
+      return Number.isFinite(n) ? n : null;
+    }
+    function clamp(value, min, max) { return Math.max(min, Math.min(max, value)); }
+    function mean(values) { return values.length ? values.reduce((a,b)=>a+b,0) / values.length : 0; }
+    function stdev(values) {
+      if (values.length < 2) return null;
+      const m = mean(values);
+      return Math.sqrt(values.reduce((s, v) => s + (v - m) ** 2, 0) / (values.length - 1));
+    }
+    function fmtPct(value, digits = 1) {
+      if (value === null || value === undefined || Number.isNaN(value)) return "-";
+      return `${value.toFixed(digits)}%`;
+    }
+    function fmtNum(value, digits = 2) {
+      if (value === null || value === undefined || Number.isNaN(value)) return "-";
+      return value.toFixed(digits);
+    }
+    function yearsBetween(start) {
+      if (!start || start === "-") return 0;
+      const d = new Date(`${start}T00:00:00`);
+      if (Number.isNaN(d.getTime())) return 0;
+      return Math.max(0, (reportDate - d) / (365.25 * 24 * 3600 * 1000));
+    }
+    function seededRandom(seed) {
+      let s = seed >>> 0;
+      return function() {
+        s = (s * 1664525 + 1013904223) >>> 0;
+        return s / 4294967296;
+      };
+    }
+    function isEquitySection(section) {
+      return ["主观选股", "主观选股-全球配置工具", "量化选股", "灵活配置型", "REITs"].includes(section);
+    }
+    function betaProxy(record) {
+      let beta = {
+        "主观选股": 0.82,
+        "主观选股-全球配置工具": 0.72,
+        "量化选股": 0.74,
+        "债券主动投资": 0.18,
+        "债券主动投资-全球配置工具": 0.22,
+        "市场中性": 0.08,
+        "多空策略": 0.22,
+        "管理期货": 0.06,
+        "多策略": 0.42,
+        "宏观及商品策略III": 0.18,
+        "灵活配置型": 0.55,
+        "全球配置工具": 0.45,
+        "REITs": 0.50
+      }[record.section] ?? 0.45;
+      const text = `${record.section} ${record.subsection} ${record.manager_fund_manager_strategy_label} ${record.product_name}`;
+      if (/市场中性|量化对冲|高频中性|对冲/.test(text)) beta -= 0.18;
+      if (/CTA|管理期货|商品|宏观/.test(text)) beta -= 0.20;
+      if (/债|固收|ABS/.test(text)) beta -= 0.20;
+      if (/指增|指数增强|沪深300|中证500|中证1000|中证A500|中证2000/.test(text)) beta += 0.12;
+      if (/高仓位|主观选股|成长|港股|中国香港/.test(text)) beta += 0.10;
+      if (/可转债|转债/.test(text)) beta = Math.max(beta, 0.38);
+      return clamp(beta, 0.02, 0.98);
+    }
+    function annualReturns(record) {
+      return yearKeys.map(([year, key]) => ({ year, value: toNum(record[key]) })).filter(x => x.value !== null);
+    }
+    function annualMap(record) {
+      const map = {};
+      for (const [year, key] of yearKeys) {
+        const value = toNum(record[key]);
+        if (value !== null) map[year] = value;
+      }
+      return map;
+    }
+    function simpleCorr(a, b) {
+      if (a.length < 3 || b.length < 3) return null;
+      const am = mean(a), bm = mean(b);
+      const num = a.reduce((s, v, i) => s + (v - am) * (b[i] - bm), 0);
+      const denA = Math.sqrt(a.reduce((s, v) => s + (v - am) ** 2, 0));
+      const denB = Math.sqrt(b.reduce((s, v) => s + (v - bm) ** 2, 0));
+      if (!denA || !denB) return null;
+      return clamp(num / (denA * denB), -0.6, 0.98);
+    }
+    const marketBenchmarks = source.records
+      .filter(r => r.row_type === "index_or_benchmark")
+      .map(r => ({ name: r.product_name || r.manager_fund_manager_strategy_label || "", years: annualMap(r) }))
+      .filter(r => /中证|沪深|恒生|万得小市值|红利|全指|中债|南华/.test(r.name));
+    const benchmarkMap = new Map(marketBenchmarks.map(b => [b.name, b]));
+    if (!benchmarkMap.has(defaultState.betaBenchmark) && marketBenchmarks.length) {
+      defaultState.betaBenchmark = marketBenchmarks[0].name;
+      state.betaBenchmark = marketBenchmarks[0].name;
+    }
+    function selectedBenchmark() {
+      return benchmarkMap.get(state.betaBenchmark) || marketBenchmarks[0] || null;
+    }
+    function betaAgainstBenchmark(record, strategyBeta) {
+      const benchmark = selectedBenchmark();
+      if (!benchmark) {
+        return {
+          beta: strategyBeta,
+          marketCorr: clamp(strategyBeta * 0.92 + 0.04, 0.02, 0.98),
+          betaSampleYears: 0
+        };
+      }
+      const years = annualMap(record);
+      const common = Object.keys(years).filter(year => benchmark.years[year] !== undefined);
+      const priorCorr = clamp(strategyBeta * 0.92 + 0.04, 0.02, 0.98);
+      if (common.length < 3) {
+        return { beta: strategyBeta, marketCorr: priorCorr, betaSampleYears: common.length };
+      }
+      const fundVals = common.map(year => years[year]);
+      const benchVals = common.map(year => benchmark.years[year]);
+      const corr = simpleCorr(fundVals, benchVals);
+      const fundMean = mean(fundVals);
+      const benchMean = mean(benchVals);
+      const cov = fundVals.reduce((s, value, i) => s + (value - fundMean) * (benchVals[i] - benchMean), 0);
+      const variance = benchVals.reduce((s, value) => s + (value - benchMean) ** 2, 0);
+      const annualBeta = variance ? clamp(cov / variance, -0.50, 2.00) : strategyBeta;
+      const sampleWeight = clamp((common.length - 2) / 5, 0.25, 0.80);
+      return {
+        beta: clamp(annualBeta * sampleWeight + strategyBeta * (1 - sampleWeight), 0, 1.60),
+        marketCorr: clamp(Math.max(0, corr ?? priorCorr) * sampleWeight + priorCorr * (1 - sampleWeight), 0, 0.98),
+        betaSampleYears: common.length
+      };
+    }
+    function concentrationRiskProxy(record) {
+      let risk = {
+        "主观选股": 0.72,
+        "主观选股-全球配置工具": 0.62,
+        "量化选股": 0.56,
+        "债券主动投资": 0.48,
+        "债券主动投资-全球配置工具": 0.44,
+        "市场中性": 0.34,
+        "多空策略": 0.42,
+        "管理期货": 0.36,
+        "多策略": 0.28,
+        "宏观及商品策略III": 0.38,
+        "灵活配置型": 0.52,
+        "全球配置工具": 0.34,
+        "REITs": 0.76
+      }[record.section] ?? 0.55;
+      const text = `${record.section} ${record.subsection} ${record.manager_fund_manager_strategy_label} ${record.product_name}`;
+      if (/多策略|复合|组合|全球|配置/.test(text)) risk -= 0.14;
+      if (/市场中性|对冲|CTA|管理期货|宏观/.test(text)) risk -= 0.10;
+      if (/行业|主题|医药|消费|科技|成长|港股|中国香港|REITs|红利|小市值|可转债/.test(text)) risk += 0.12;
+      if (/指增|指数增强|中证500|中证1000|中证2000|沪深300|中证A500/.test(text)) risk += 0.06;
+      return clamp(risk, 0.12, 0.90);
+    }
+    function fullVector(record, sectionYearAvg, globalYearAvg) {
+      return yearKeys.map(([year, key]) => {
+        const v = toNum(record[key]);
+        if (v !== null) return v;
+        return sectionYearAvg[record.section]?.[year] ?? globalYearAvg[year] ?? 0;
+      });
+    }
+    function maxDrawdownFromReturns(returns) {
+      let nav = 1;
+      let peak = 1;
+      let mdd = 0;
+      for (const r of returns) {
+        nav *= 1 + r / 100;
+        peak = Math.max(peak, nav);
+        mdd = Math.min(mdd, (nav - peak) / peak);
+      }
+      return Math.abs(mdd * 100);
+    }
+    function buildBaseFunds() {
+      return source.records
+        .filter(r => r.row_type === "product" && r.product_name && r.product_name !== "-")
+        .map((r, index) => {
+          const annual = annualReturns(r).map(x => x.value);
+          const rawReturn = annual.length ? mean(annual) : (toNum(r.return_ytd_pct) ?? 0);
+          const dd1y = Math.abs(toNum(r.max_drawdown_1y_pct) ?? 0);
+          const histDd = Math.abs(toNum(r.max_drawdown_hist_pct) ?? dd1y);
+          const age = yearsBetween(r.fifty_underlying_start_date);
+          const historyYears = Math.max(age, annual.length);
+          const vol = stdev(annual) ?? Math.max(4, Math.min(45, histDd * 0.45 || dd1y * 0.8 || 10));
+          const strategyBeta = betaProxy(r);
+          const concentrationRisk = concentrationRiskProxy(r);
+          const sharpe = toNum(r.sharpe_1y);
+          return {
+            ...r,
+            id: index,
+            annual,
+            rawReturn,
+            dd1y,
+            histDd,
+            age,
+            historyYears,
+            annualCount: annual.length,
+            vol,
+            strategyBeta,
+            beta: strategyBeta,
+            marketCorr: clamp(strategyBeta * 0.92 + 0.04, 0.02, 0.98),
+            betaSampleYears: 0,
+            concentrationRisk,
+            sharpe,
+            ytd: toNum(r.return_ytd_pct)
+          };
+        });
+    }
+    const baseFunds = buildBaseFunds();
+
+    function scoreFund(fund) {
+      const betaStats = betaAgainstBenchmark(fund, fund.strategyBeta);
+      const beta = betaStats.beta;
+      const marketCorr = betaStats.marketCorr;
+      const history = clamp((Math.min(fund.historyYears, 5) / 5) * 72 + (Math.min(fund.annualCount, 5) / 5) * 28, 0, 100);
+      const market = clamp(100 - marketCorr * 100 - Math.max(0, beta - state.maxBeta) * 18, 0, 100);
+      const concentration = clamp(100 - fund.concentrationRisk * 100, 0, 100);
+
+      let data = 74;
+      if (!fund.is_nav_stitched) data += 14;
+      if (fund.is_fee_deducted) data += 8;
+      if (fund.annualCount >= 3) data += 4;
+      if (fund.annualCount < 2) data -= 12;
+      if (!fund.fifty_underlying_start_date || fund.fifty_underlying_start_date === "-") data -= 8;
+      if (fund.extraction_quality_notes) data -= 6;
+      data = clamp(data, 0, 100);
+
+      const weights = state.weights;
+      const totalWeight = Object.values(weights).reduce((s, v) => s + v, 0) || 1;
+      const rawScore = (
+        history * weights.history +
+        data * weights.data +
+        market * weights.market +
+        concentration * weights.concentration
+      ) / totalWeight;
+      const score = Object.values(weights).some(v => v > 0) ? rawScore : 50;
+
+      const transferability = Object.values(weights).some(v => v > 0)
+        ? clamp(score * 0.90 + data * 0.10, 0, 100)
+        : clamp(mean([history, market, concentration, data]), 0, 100);
+      const haircut = 0.45 + 0.55 * transferability / 100;
+      const adjReturn = fund.rawReturn >= 0 ? fund.rawReturn * haircut : fund.rawReturn;
+      const capRule = activeConcentrationProfile().caps.find(rule => score >= rule.minScore);
+      const cap = capRule ? capRule.cap : 0.05;
+      return {
+        ...fund,
+        beta,
+        marketCorr,
+        betaSampleYears: betaStats.betaSampleYears,
+        scores: { history, market, concentration, data, total: score, transferability },
+        adjReturn,
+        haircut,
+        cap
+      };
+    }
+    function scoredFunds() {
+      return baseFunds.map(scoreFund);
+    }
+    function eligibleFunds(all) {
+      return all.filter(f => {
+        if (!state.allowPaused && f.is_subscription_paused) return false;
+        if (!Number.isFinite(f.adjReturn) || !Number.isFinite(f.vol)) return false;
+        if (f.scores.total < 35) return false;
+        return true;
+      });
+    }
+    function sectionYearAverages(funds) {
+      const global = {};
+      const bySection = {};
+      for (const [year, key] of yearKeys) {
+        const vals = funds.map(f => toNum(f[key])).filter(v => v !== null);
+        global[year] = vals.length ? mean(vals) : 0;
+        for (const section of new Set(funds.map(f => f.section))) {
+          const sVals = funds.filter(f => f.section === section).map(f => toNum(f[key])).filter(v => v !== null);
+          bySection[section] = bySection[section] || {};
+          bySection[section][year] = sVals.length ? mean(sVals) : global[year];
+        }
+      }
+      return { bySection, global };
+    }
+    function corrBase(a, b) {
+      if (a.section === b.section) return 0.66;
+      if (a.section === "多策略" || b.section === "多策略") return 0.38;
+      if (isEquitySection(a.section) && isEquitySection(b.section)) return 0.55;
+      if (["市场中性", "管理期货", "债券主动投资", "债券主动投资-全球配置工具"].includes(a.section) ||
+          ["市场中性", "管理期货", "债券主动投资", "债券主动投资-全球配置工具"].includes(b.section)) return 0.16;
+      return 0.28;
+    }
+    function correlation(a, b) {
+      const av = a.vector;
+      const bv = b.vector;
+      const am = mean(av), bm = mean(bv);
+      const num = av.reduce((s, v, i) => s + (v - am) * (bv[i] - bm), 0);
+      const denA = Math.sqrt(av.reduce((s, v) => s + (v - am) ** 2, 0));
+      const denB = Math.sqrt(bv.reduce((s, v) => s + (v - bm) ** 2, 0));
+      const empirical = denA && denB ? clamp(num / (denA * denB), -0.4, 0.95) : corrBase(a, b);
+      return clamp(empirical * 0.55 + corrBase(a, b) * 0.45, -0.2, 0.95);
+    }
+    function enforceCaps(items, weights) {
+      if (items.reduce((s, item) => s + item.cap, 0) < 0.999) return null;
+      let w = weights.slice();
+      for (let pass = 0; pass < 8; pass++) {
+        let excess = 0;
+        let free = [];
+        w = w.map((value, i) => {
+          if (value > items[i].cap) {
+            excess += value - items[i].cap;
+            return items[i].cap;
+          }
+          free.push(i);
+          return value;
+        });
+        if (excess <= 0.0001 || !free.length) break;
+        const freeTotal = free.reduce((s, i) => s + w[i], 0) || 1;
+        free.forEach(i => { w[i] += excess * (w[i] / freeTotal); });
+      }
+      const total = w.reduce((s, v) => s + v, 0) || 1;
+      w = w.map(v => v / total);
+      for (let pass = 0; pass < 4; pass++) {
+        let excess = 0;
+        const free = [];
+        w = w.map((value, i) => {
+          if (value > items[i].cap) {
+            excess += value - items[i].cap;
+            return items[i].cap;
+          }
+          free.push(i);
+          return value;
+        });
+        if (excess <= 0.0001 || !free.length) break;
+        const freeRoom = free.reduce((s, i) => s + Math.max(0, items[i].cap - w[i]), 0);
+        if (freeRoom <= 0.0001) break;
+        free.forEach(i => {
+          const room = Math.max(0, items[i].cap - w[i]);
+          w[i] += excess * (room / freeRoom);
+        });
+      }
+      const finalTotal = w.reduce((s, v) => s + v, 0) || 1;
+      return w.map(v => v / finalTotal);
+    }
+    function evaluatePortfolio(items, weights, label) {
+      const ret = items.reduce((s, f, i) => s + weights[i] * f.adjReturn, 0);
+      const beta = items.reduce((s, f, i) => s + weights[i] * f.beta, 0);
+      let variance = 0;
+      let avgCorr = 0;
+      let pairWeight = 0;
+      for (let i = 0; i < items.length; i++) {
+        for (let j = 0; j < items.length; j++) {
+          const c = i === j ? 1 : correlation(items[i], items[j]);
+          variance += weights[i] * weights[j] * items[i].vol * items[j].vol * c;
+          if (i < j) {
+            avgCorr += weights[i] * weights[j] * c;
+            pairWeight += weights[i] * weights[j];
+          }
+        }
+      }
+      avgCorr = pairWeight ? avgCorr / pairWeight : 1;
+      const vol = Math.sqrt(Math.max(0, variance));
+      const annual = yearKeys.map((_, yi) => items.reduce((s, f, i) => s + weights[i] * f.vector[yi], 0));
+      const annualDD = maxDrawdownFromReturns(annual);
+      const weightedDD = items.reduce((s, f, i) => s + weights[i] * f.histDd, 0);
+      const dd = Math.max(annualDD, weightedDD * (0.38 + 0.32 * Math.sqrt(Math.max(avgCorr, 0.04))));
+      const productScore = items.reduce((s, f, i) => s + weights[i] * f.scores.total, 0);
+      const feasible = ret >= state.requiredReturn && vol <= state.maxVol && dd <= state.maxDrawdown && beta <= state.maxBeta;
+      const misses = [];
+      if (ret < state.requiredReturn) misses.push("收益不足");
+      if (vol > state.maxVol) misses.push("波动超限");
+      if (dd > state.maxDrawdown) misses.push("回撤超限");
+      if (beta > state.maxBeta) misses.push("Beta超限");
+      return { label, items, weights, ret, beta, vol, dd, productScore, feasible, misses, annual };
+    }
+    function makePortfolios(eligible) {
+      if (!eligible.length) return [];
+      const profile = activeConcentrationProfile();
+      const { bySection, global } = sectionYearAverages(eligible);
+      const pool = eligible
+        .map(f => ({ ...f, vector: fullVector(f, bySection, global) }))
+        .sort((a, b) => b.scores.total - a.scores.total)
+        .slice(0, 42);
+      const portfolios = [];
+      const rng = seededRandom(20260618);
+      const topCount = Math.min(profile.maxFunds, pool.length);
+      if (topCount >= profile.minFunds) {
+        const items = pool.slice(0, topCount);
+        const raw = items.map(f => Math.max(0.1, f.scores.total / 100));
+        const total = raw.reduce((s,v)=>s+v,0);
+        const weights = enforceCaps(items, raw.map(v => v / total));
+        if (weights) portfolios.push(evaluatePortfolio(items, weights, "高分产品优先"));
+      }
+      for (let n = 0; n < 2400; n++) {
+        const width = Math.max(1, profile.maxFunds - profile.minFunds + 1);
+        const k = Math.min(pool.length, profile.minFunds + Math.floor(rng() * width));
+        const selected = [];
+        const attempts = new Set();
+        while (selected.length < k && attempts.size < pool.length) {
+          const idx = Math.floor((rng() ** 1.65) * pool.length);
+          attempts.add(idx);
+          if (!selected.includes(pool[idx])) selected.push(pool[idx]);
+        }
+        if (selected.length < profile.minFunds) continue;
+        const raw = selected.map(f => (0.15 + rng() ** 1.4) * (0.55 + f.scores.total / 100));
+        const total = raw.reduce((s,v)=>s+v,0);
+        const weights = enforceCaps(selected, raw.map(v => v / total));
+        if (!weights) continue;
+        const sectionWeights = {};
+        selected.forEach((f, i) => { sectionWeights[f.section] = (sectionWeights[f.section] || 0) + weights[i]; });
+        if (Math.max(...Object.values(sectionWeights)) > profile.sectionCap) continue;
+        portfolios.push(evaluatePortfolio(selected, weights, "模拟组合"));
+      }
+      return portfolios;
+    }
+    function choosePortfolios(portfolios) {
+      if (!portfolios.length) return [];
+      const feasible = portfolios.filter(p => p.feasible);
+      const base = feasible.length ? feasible : portfolios;
+      const balanced = [...base].sort((a, b) => {
+        const as = a.ret * 1.7 + a.productScore * 0.22 - a.vol * 0.75 - a.dd * 0.65 - Math.max(0, a.beta - state.maxBeta) * 80;
+        const bs = b.ret * 1.7 + b.productScore * 0.22 - b.vol * 0.75 - b.dd * 0.65 - Math.max(0, b.beta - state.maxBeta) * 80;
+        return bs - as;
+      })[0];
+      const lowRisk = [...base].sort((a, b) => (a.vol + a.dd) - (b.vol + b.dd))[0];
+      const maxReturn = [...base].sort((a, b) => b.ret - a.ret)[0];
+      return [
+        { ...balanced, label: feasible.length ? "目标适配组合" : "最接近目标组合", selected: true },
+        { ...lowRisk, label: "低风险组合" },
+        { ...maxReturn, label: "收益进取组合" }
+      ].filter((p, i, arr) => arr.findIndex(x => signature(x) === signature(p)) === i);
+    }
+    function signature(p) {
+      return p.items.map((f, i) => `${f.id}:${Math.round(p.weights[i] * 1000)}`).join("|");
+    }
+    function filteredRows(scored) {
+      let rows = scored.slice();
+      if (state.section !== "全部") rows = rows.filter(f => f.section === state.section);
+      if (state.status === "open") rows = rows.filter(f => !f.is_subscription_paused);
+      if (state.status === "paused") rows = rows.filter(f => f.is_subscription_paused);
+      const q = state.search.trim().toLowerCase();
+      if (q) {
+        rows = rows.filter(f => `${f.manager_fund_manager_strategy_label} ${f.product_name} ${f.section} ${f.subsection}`.toLowerCase().includes(q));
+      }
+      const sorters = {
+        score: (a, b) => b.scores.total - a.scores.total,
+        adjReturn: (a, b) => b.adjReturn - a.adjReturn,
+        risk: (a, b) => (a.vol + a.histDd) - (b.vol + b.histDd),
+        history: (a, b) => b.historyYears - a.historyYears,
+        beta: (a, b) => a.beta - b.beta,
+        market: (a, b) => a.marketCorr - b.marketCorr,
+        concentration: (a, b) => a.concentrationRisk - b.concentrationRisk
+      };
+      return rows.sort(sorters[state.sort] || sorters.score);
+    }
+    function fundReasons(f) {
+      const good = [];
+      const bad = [];
+      if (f.scores.total >= 75) good.push("综合分高");
+      if (f.adjReturn >= state.requiredReturn) good.push("收益达标");
+      if (f.histDd <= state.maxDrawdown) good.push("回撤适配");
+      if (f.beta <= state.maxBeta) good.push("beta适配");
+      if (f.historyYears >= 4) good.push("历史较长");
+      if (f.marketCorr <= 0.35) good.push("大盘相关低");
+      if (f.concentrationRisk <= 0.40) good.push("集中度低");
+      if (f.scores.data >= 85) good.push("口径较好");
+      if (f.is_nav_stitched) bad.push("[1]拼接净值");
+      if (f.is_subscription_paused) bad.push("[3]暂停申购");
+      if (f.histDd > state.maxDrawdown) bad.push("历史回撤高");
+      if (f.vol > state.maxVol) bad.push("波动偏高");
+      if (f.beta > state.maxBeta) bad.push("beta偏高");
+      if (f.marketCorr > 0.70) bad.push("大盘相关高");
+      if (f.concentrationRisk > 0.65) bad.push("集中度偏高");
+      if (f.historyYears < 1) bad.push("历史较短");
+      return { good, bad };
+    }
+    function openDetail(key) {
+      const detail = scoringDetails[key];
+      if (!detail) return;
+      document.querySelector(".detail-card").classList.remove("wide");
+      document.getElementById("detailTitle").textContent = detail.title;
+      document.getElementById("detailSubtitle").textContent = detail.subtitle;
+      document.getElementById("detailBody").innerHTML = `
+        <div class="detail-block"><strong>这个指标怎么得到</strong><p>${detail.source}</p></div>
+        <div class="detail-block"><strong>指标方向</strong><p>${detail.processing}</p></div>
+        <div class="detail-block"><strong>怎么影响推荐</strong><p>${detail.usage}</p></div>
+      `;
+      document.getElementById("detailModal").hidden = false;
+    }
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+    }
+    function passTag(pass) {
+      return `<span class="tag ${pass ? "green" : "rose"}">${pass ? "通过" : "未通过"}</span>`;
+    }
+    function portfolioSelectionRule(portfolio) {
+      if (portfolio.label.includes("低风险")) {
+        return "在满足当前组合目标的组合中，选择“波动 proxy + 回撤 proxy”最低的一组。";
+      }
+      if (portfolio.label.includes("收益进取")) {
+        return "在满足当前组合目标的组合中，选择调整后预期收益最高的一组。";
+      }
+      if (portfolio.label.includes("最接近")) {
+        return "当前参数下没有完全满足全部目标的组合，因此展示综合目标偏离最小、产品分数和收益风险表现相对更好的组合。";
+      }
+      return "在满足当前组合目标的组合中，综合考虑调整后收益、组合风险、组合 beta 和产品平均分后得分最高的一组。";
+    }
+    function openPortfolioDetail(portfolio) {
+      if (!portfolio) return;
+      document.querySelector(".detail-card").classList.add("wide");
+      document.getElementById("detailTitle").textContent = `${portfolio.label}推导详情`;
+      document.getElementById("detailSubtitle").textContent = portfolio.feasible ? "该组合满足当前组合目标。" : `该组合接近目标，未完全满足：${portfolio.misses.join("、") || "部分约束"}`;
+      const constraints = [
+        ["Required return", fmtPct(portfolio.ret, 1), `≥ ${fmtPct(state.requiredReturn, 1)}`, portfolio.ret >= state.requiredReturn],
+        ["Max drawdown", fmtPct(portfolio.dd, 1), `≤ ${fmtPct(state.maxDrawdown, 1)}`, portfolio.dd <= state.maxDrawdown],
+        ["Max standard deviation", fmtPct(portfolio.vol, 1), `≤ ${fmtPct(state.maxVol, 1)}`, portfolio.vol <= state.maxVol],
+        ["Max beta exposure", fmtNum(portfolio.beta, 2), `≤ ${fmtNum(state.maxBeta, 2)}`, portfolio.beta <= state.maxBeta]
+      ];
+      const weightText = weightDefinitions.map(def => `${def.label}: ${state.weights[def.key]}/5`).join("；");
+      const profile = activeConcentrationProfile();
+      const holdings = portfolio.items
+        .map((f, i) => ({ f, w: portfolio.weights[i] }))
+        .sort((a, b) => b.w - a.w);
+      const holdingsRows = holdings.map(({ f, w }) => {
+        const reasons = fundReasons(f);
+        const reason = [...reasons.good.slice(0, 3), ...reasons.bad.slice(0, 2)].join("、") || "中性";
+        return `
+          <tr>
+            <td>${escapeHtml(f.product_name)}<br><span class="panel-subtitle">${escapeHtml(f.manager_fund_manager_strategy_label || "")}</span></td>
+            <td class="num">${(w * 100).toFixed(1)}%</td>
+            <td class="num">${Math.round(f.scores.total)}</td>
+            <td class="num">${fmtPct(f.rawReturn, 1)}</td>
+            <td class="num">${fmtPct(f.adjReturn, 1)}</td>
+            <td class="num">${fmtNum(f.beta, 2)}</td>
+            <td class="num">${(f.cap * 100).toFixed(1)}%</td>
+            <td>${escapeHtml(reason)}</td>
+          </tr>
+        `;
+      }).join("");
+      document.getElementById("detailBody").innerHTML = `
+        <div class="detail-grid">
+          <div class="detail-metric"><span>预期收益</span><strong>${fmtPct(portfolio.ret, 1)}</strong></div>
+          <div class="detail-metric"><span>波动 proxy</span><strong>${fmtPct(portfolio.vol, 1)}</strong></div>
+          <div class="detail-metric"><span>回撤 proxy</span><strong>${fmtPct(portfolio.dd, 1)}</strong></div>
+          <div class="detail-metric"><span>Beta</span><strong>${fmtNum(portfolio.beta, 2)}</strong></div>
+        </div>
+        <div class="detail-block">
+          <strong>当前输入快照</strong>
+          <p>Beta benchmark：${escapeHtml(state.betaBenchmark)}。组合敞口集中度：${escapeHtml(profile.label)}（${escapeHtml(profile.range)}）。评分偏好：${escapeHtml(weightText)}。暂停申购产品${state.allowPaused ? "允许" : "不允许"}进入优化池。</p>
+        </div>
+        <div class="detail-block">
+          <strong>目标约束检查</strong>
+          <div class="detail-table-wrap">
+            <table class="detail-table">
+              <thead><tr><th>约束</th><th>当前组合</th><th>目标</th><th>结果</th></tr></thead>
+              <tbody>
+                ${constraints.map(([name, actual, target, pass]) => `<tr><td>${name}</td><td class="num">${actual}</td><td class="num">${target}</td><td>${passTag(pass)}</td></tr>`).join("")}
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="detail-block">
+          <strong>产品评分如何进入组合</strong>
+          <p>第 2 步先把每只产品算成综合评分；综合评分越高，历史收益折扣越少。单品权重上限由产品综合评分和左侧组合敞口集中度共同决定。组合模拟时，每只产品的调整后收益和权重上限都会参与计算。</p>
+          <div class="detail-rule">产品综合评分 = Σ(维度评分 × 用户重要性) / Σ(用户重要性)<br>调整后收益 = 历史收益 × 可信度折扣</div>
+        </div>
+        <div class="detail-block">
+          <strong>持仓拆解</strong>
+          <div class="detail-table-wrap">
+            <table class="detail-table">
+              <thead><tr><th>产品</th><th>权重</th><th>综合分</th><th>历史收益</th><th>调整后收益</th><th>Beta</th><th>权重上限</th><th>主要原因</th></tr></thead>
+              <tbody>${holdingsRows}</tbody>
+            </table>
+          </div>
+        </div>
+        <div class="detail-block">
+          <strong>为什么选中这个组合</strong>
+          <p>${portfolioSelectionRule(portfolio)}</p>
+        </div>
+      `;
+      document.getElementById("detailModal").hidden = false;
+    }
+    function closeDetail() {
+      document.getElementById("detailModal").hidden = true;
+    }
+    function renderControls() {
+      document.getElementById("requiredReturnVal").textContent = state.requiredReturn.toFixed(1);
+      document.getElementById("maxDrawdownVal").textContent = state.maxDrawdown.toFixed(1);
+      document.getElementById("maxVolVal").textContent = state.maxVol.toFixed(1);
+      document.getElementById("maxBetaVal").textContent = state.maxBeta.toFixed(2);
+      document.getElementById("betaBenchmarkLabel").textContent = state.betaBenchmark;
+      document.getElementById("benchmarkPill").textContent = state.betaBenchmark.replace("指数", "");
+      const profile = activeConcentrationProfile();
+      document.getElementById("concentrationModeLabel").textContent = `${profile.label} · ${profile.range}`;
+      document.getElementById("concentrationModeHelp").textContent = profile.help;
+      document.getElementById("allowPaused").checked = state.allowPaused;
+      for (const id of ["requiredReturn", "maxDrawdown", "maxVol", "maxBeta"]) {
+        document.getElementById(id).value = state[id];
+      }
+      const benchmarkSelect = document.getElementById("betaBenchmark");
+      benchmarkSelect.innerHTML = marketBenchmarks.map(benchmark => `
+        <option value="${benchmark.name}" ${benchmark.name === state.betaBenchmark ? "selected" : ""}>${benchmark.name}</option>
+      `).join("");
+      const concentrationSelect = document.getElementById("concentrationMode");
+      concentrationSelect.innerHTML = Object.entries(concentrationProfiles).map(([key, mode]) => `
+        <option value="${key}" ${key === state.concentrationMode ? "selected" : ""}>${mode.label}（${mode.range}）</option>
+      `).join("");
+      const active = weightDefinitions
+        .filter(def => (state.weights[def.key] || 0) > 0)
+        .sort((a, b) => state.weights[b.key] - state.weights[a.key]);
+      const summary = document.getElementById("weightSummary");
+      if (!active.length) {
+        summary.innerHTML = `<strong>当前未启用评分项。</strong><br>至少把一个维度调到 1 分以上，组合推荐会恢复产品可信度排序。`;
+      } else {
+        summary.innerHTML = `<strong>分数代表相对重要性。</strong><br>0 = 不纳入评分；1 = 轻度参考；3 = 正常看重；5 = 核心判断项。`;
+      }
+      const controls = document.getElementById("weightControls");
+      controls.innerHTML = weightDefinitions.map(def => `
+        <div class="weight-card ${def.disabled ? "disabled" : ""}">
+          <div class="weight-top">
+            <div class="weight-title">
+              <strong>${def.label}</strong>
+              <button class="detail-btn" data-detail="${def.key}" type="button" aria-label="${def.label}详情">i</button>
+            </div>
+            <span>${state.weights[def.key]}/5</span>
+          </div>
+          <div class="battery-control">
+            <button class="zero-btn ${state.weights[def.key] === 0 ? "active" : ""}" data-weight="${def.key}" data-score="0" type="button">0</button>
+            <div class="battery-bar" aria-label="${def.label} 评分">
+              ${[1,2,3,4,5].map(score => `
+                <button class="battery-cell ${score <= state.weights[def.key] ? "filled" : ""}" data-weight="${def.key}" data-score="${score}" type="button" title="${score}/5"></button>
+              `).join("")}
+            </div>
+          </div>
+          <div class="scale-row"><span>不纳入</span><span>轻度</span><span>正常</span><span>核心</span></div>
+          <p class="field-help">${def.help}</p>
+        </div>
+      `).join("");
+      controls.querySelectorAll("button[data-weight]").forEach(button => {
+        button.addEventListener("click", () => {
+          state.weights[button.dataset.weight] = Number(button.dataset.score);
+          render();
+        });
+      });
+      controls.querySelectorAll("button[data-detail]").forEach(button => {
+        button.addEventListener("click", () => openDetail(button.dataset.detail));
+      });
+    }
+    function renderStats(eligible, portfolios, selected) {
+      document.getElementById("dataCount").textContent = baseFunds.length;
+      document.getElementById("eligibleCount").textContent = eligible.length;
+      document.getElementById("feasibleCount").textContent = portfolios.filter(p => p.feasible).length;
+      document.getElementById("recommendedName").textContent = selected?.label ? selected.label.replace("组合", "") : "-";
+      const rr = state.requiredReturn / Math.max(state.maxDrawdown, 1);
+      const rv = state.requiredReturn / Math.max(state.maxVol, 1);
+      let label = "平衡";
+      let text = "目标约束有可探索空间。";
+      if (rr > 1.05 || rv > 0.85) {
+        label = "偏紧";
+        text = "收益目标相对回撤/波动预算偏高，可行组合会减少。";
+      } else if (rr < 0.45 && rv < 0.45) {
+        label = "宽松";
+        text = "风险预算相对收益目标较宽，可优先看低风险组合。";
+      }
+      document.getElementById("goalPressure").textContent = label;
+      document.getElementById("goalPressureText").textContent = text;
+    }
+    function renderPortfolioCards(selectedList) {
+      const box = document.getElementById("portfolioCards");
+      if (!selectedList.length) {
+        box.innerHTML = `<div class="portfolio-card"><div class="portfolio-head"><h3>暂无推荐</h3><p>当前参数下没有足够候选产品。</p></div></div>`;
+        return;
+      }
+      box.innerHTML = selectedList.map((p, portfolioIndex) => {
+        const holdings = p.items
+          .map((f, i) => ({ f, w: p.weights[i] }))
+          .sort((a, b) => b.w - a.w)
+          .slice(0, 8)
+          .map(({ f, w }) => `
+            <div class="holding">
+              <span class="num">${(w * 100).toFixed(1)}%</span>
+              <div>
+                <div class="holding-name">${f.product_name}</div>
+                <div class="holding-bar"><i style="width:${Math.min(100, w * 500)}%; background:${sectionColors[f.section] || "#0f766e"}"></i></div>
+              </div>
+              <span class="tag ${sectionTags[f.section] || "gray"}">${Math.round(f.scores.total)}</span>
+            </div>
+          `).join("");
+        return `
+          <article class="portfolio-card clickable ${p.selected ? "selected" : ""}" data-portfolio-index="${portfolioIndex}" role="button" tabindex="0" aria-label="${p.label}推导详情">
+            <div class="portfolio-head">
+              <div>
+                <h3>${p.label}</h3>
+                <p>${p.feasible ? "满足当前组合目标" : `未完全满足：${p.misses.join("、") || "接近目标"}`}</p>
+              </div>
+              <span class="tag ${p.feasible ? "teal" : "amber"}">${p.feasible ? "可行" : "近似"}</span>
+            </div>
+            <div class="metric-row">
+              <div class="mini-metric"><span>预期收益</span><strong>${fmtPct(p.ret, 1)}</strong></div>
+              <div class="mini-metric"><span>波动</span><strong>${fmtPct(p.vol, 1)}</strong></div>
+              <div class="mini-metric"><span>回撤</span><strong>${fmtPct(p.dd, 1)}</strong></div>
+              <div class="mini-metric"><span>Beta</span><strong>${fmtNum(p.beta, 2)}</strong></div>
+            </div>
+            <div class="holdings">${holdings}</div>
+            <span class="panel-subtitle">展示前 8 / 共 ${p.items.length} 只，点击查看推导详情</span>
+          </article>
+        `;
+      }).join("");
+      box.querySelectorAll("[data-portfolio-index]").forEach(card => {
+        const portfolio = selectedList[Number(card.dataset.portfolioIndex)];
+        card.addEventListener("click", () => openPortfolioDetail(portfolio));
+        card.addEventListener("keydown", event => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            openPortfolioDetail(portfolio);
+          }
+        });
+      });
+    }
+    function renderRows(rows) {
+      const body = document.getElementById("fundRows");
+      const limited = rows.slice(0, 90);
+      document.getElementById("visibleCount").textContent = rows.length;
+      if (!limited.length) {
+        body.innerHTML = `<tr><td colspan="13">没有匹配产品。</td></tr>`;
+        return;
+      }
+      body.innerHTML = limited.map(f => {
+        const angle = Math.round(f.scores.total * 3.6);
+        const reasons = fundReasons(f);
+        const reasonHtml = `
+          ${reasons.good.length ? `<b>加分：</b>${reasons.good.join("、")}<br>` : ""}
+          ${reasons.bad.length ? `<b>扣分：</b>${reasons.bad.join("、")}` : ""}
+        `;
+        const flags = [
+          f.is_nav_stitched ? "[1]" : "",
+          f.is_fee_deducted ? "[2]" : "",
+          f.is_subscription_paused ? "[3]" : ""
+        ].filter(Boolean).join(" ");
+        return `
+          <tr>
+            <td>
+              <div class="product">
+                <strong>${f.product_name}</strong>
+                <span>${f.manager_fund_manager_strategy_label || "管理人字段缺失"} · 起始 ${f.fifty_underlying_start_date}</span>
+              </div>
+            </td>
+            <td><span class="tag ${sectionTags[f.section] || "gray"}">${f.section}</span><div class="panel-subtitle">${f.subsection || ""}</div></td>
+            <td><div class="score-cell"><div class="score-ring" style="--angle:${angle}deg"><span>${Math.round(f.scores.total)}</span></div><span class="panel-subtitle">可信 ${Math.round(f.scores.transferability)}</span></div></td>
+            <td class="num ${f.adjReturn >= 0 ? "positive" : "negative"}">${fmtPct(f.adjReturn, 1)}</td>
+            <td class="num ${f.rawReturn >= 0 ? "positive" : "negative"}">${fmtPct(f.rawReturn, 1)}</td>
+            <td class="num">${fmtPct(f.vol, 1)}</td>
+            <td class="num negative">${fmtPct(-f.histDd, 1)}</td>
+            <td class="num">${fmtNum(f.beta, 2)}</td>
+            <td class="num">${fmtNum(f.marketCorr, 2)}</td>
+            <td class="num">${fmtNum(f.concentrationRisk, 2)}</td>
+            <td class="num">${fmtNum(f.historyYears, 1)} 年</td>
+            <td>${flags ? `<span class="tag amber">${flags}</span>` : `<span class="tag green">当前产品</span>`}</td>
+            <td><div class="reason-list">${reasonHtml || "中性"}</div></td>
+          </tr>
+        `;
+      }).join("");
+    }
+    function drawAxes(ctx, w, h, pad, xLabel, yLabel) {
+      ctx.strokeStyle = "#d9e0df";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(pad.left, pad.top);
+      ctx.lineTo(pad.left, h - pad.bottom);
+      ctx.lineTo(w - pad.right, h - pad.bottom);
+      ctx.stroke();
+      ctx.fillStyle = "#66736f";
+      ctx.font = "12px Inter, sans-serif";
+      ctx.fillText(yLabel, 10, pad.top + 8);
+      ctx.fillText(xLabel, Math.max(pad.left, w - pad.right - 128), h - 10);
+    }
+    function prepareCanvas(canvas) {
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = Math.floor(rect.width * dpr);
+      canvas.height = Math.floor(rect.height * dpr);
+      const ctx = canvas.getContext("2d");
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      return { ctx, w: rect.width, h: rect.height };
+    }
+    function drawFrontier(portfolios, selectedList) {
+      const canvas = document.getElementById("frontierCanvas");
+      const { ctx, w, h } = prepareCanvas(canvas);
+      ctx.clearRect(0, 0, w, h);
+      const pad = { left: 46, right: 16, top: 20, bottom: 36 };
+      const pts = portfolios.length ? portfolios : [];
+      const maxX = Math.max(state.maxVol * 1.2, ...pts.map(p => p.vol), 10);
+      const minY = Math.min(-4, ...pts.map(p => p.ret)) - 1;
+      const maxY = Math.max(state.requiredReturn * 1.2, ...pts.map(p => p.ret), 12);
+      const x = v => pad.left + (v / maxX) * (w - pad.left - pad.right);
+      const y = v => pad.top + (1 - (v - minY) / (maxY - minY)) * (h - pad.top - pad.bottom);
+      drawAxes(ctx, w, h, pad, "波动 proxy", "预期收益");
+      ctx.strokeStyle = "rgba(190,18,60,.35)";
+      ctx.setLineDash([5, 5]);
+      ctx.beginPath();
+      ctx.moveTo(x(state.maxVol), pad.top);
+      ctx.lineTo(x(state.maxVol), h - pad.bottom);
+      ctx.moveTo(pad.left, y(state.requiredReturn));
+      ctx.lineTo(w - pad.right, y(state.requiredReturn));
+      ctx.stroke();
+      ctx.setLineDash([]);
+      pts.forEach(p => {
+        ctx.globalAlpha = p.feasible ? 0.72 : 0.28;
+        ctx.fillStyle = p.feasible ? "#0f766e" : "#9ca3af";
+        ctx.beginPath();
+        ctx.arc(x(p.vol), y(p.ret), p.feasible ? 4 : 3, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      ctx.globalAlpha = 1;
+      selectedList.forEach(p => {
+        ctx.fillStyle = p.selected ? "#be123c" : "#2563eb";
+        ctx.strokeStyle = "#fff";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(x(p.vol), y(p.ret), p.selected ? 8 : 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+      });
+    }
+    function drawProductChart(funds) {
+      const canvas = document.getElementById("productCanvas");
+      const { ctx, w, h } = prepareCanvas(canvas);
+      ctx.clearRect(0, 0, w, h);
+      const pad = { left: 46, right: 16, top: 20, bottom: 36 };
+      const maxX = Math.max(state.maxDrawdown * 1.8, ...funds.map(f => f.histDd), 12);
+      const minY = Math.min(-6, ...funds.map(f => f.adjReturn)) - 1;
+      const maxY = Math.max(state.requiredReturn * 1.3, ...funds.map(f => f.adjReturn), 12);
+      const x = v => pad.left + (v / maxX) * (w - pad.left - pad.right);
+      const y = v => pad.top + (1 - (v - minY) / (maxY - minY)) * (h - pad.top - pad.bottom);
+      drawAxes(ctx, w, h, pad, "历史最大回撤", "调整后收益");
+      ctx.strokeStyle = "rgba(190,18,60,.35)";
+      ctx.setLineDash([5, 5]);
+      ctx.beginPath();
+      ctx.moveTo(x(state.maxDrawdown), pad.top);
+      ctx.lineTo(x(state.maxDrawdown), h - pad.bottom);
+      ctx.moveTo(pad.left, y(state.requiredReturn));
+      ctx.lineTo(w - pad.right, y(state.requiredReturn));
+      ctx.stroke();
+      ctx.setLineDash([]);
+      funds.forEach(f => {
+        const r = 3 + f.scores.total / 22;
+        ctx.globalAlpha = (!state.allowPaused && f.is_subscription_paused) ? 0.18 : 0.8;
+        ctx.fillStyle = sectionColors[f.section] || "#64748b";
+        ctx.beginPath();
+        ctx.arc(x(f.histDd), y(f.adjReturn), r, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      ctx.globalAlpha = 1;
+    }
+    function renderLegend() {
+      const legend = document.getElementById("sectionLegend");
+      legend.innerHTML = Object.entries(sectionColors).map(([section, color]) => `<span><i class="dot" style="background:${color}"></i>${section}</span>`).join("");
+    }
+    function renderFilters() {
+      const select = document.getElementById("sectionFilter");
+      const sections = ["全部", ...Array.from(new Set(baseFunds.map(f => f.section))).sort()];
+      select.innerHTML = sections.map(s => `<option value="${s}" ${s === state.section ? "selected" : ""}>${s}</option>`).join("");
+      document.getElementById("searchInput").value = state.search;
+      document.getElementById("statusFilter").value = state.status;
+      document.getElementById("sortSelect").value = state.sort;
+    }
+    function render() {
+      renderControls();
+      renderFilters();
+      const all = scoredFunds();
+      const eligible = eligibleFunds(all);
+      const portfolios = makePortfolios(eligible);
+      const selected = choosePortfolios(portfolios);
+      renderStats(eligible, portfolios, selected[0]);
+      renderPortfolioCards(selected);
+      renderRows(filteredRows(all));
+      drawFrontier(portfolios, selected);
+      drawProductChart(all);
+      renderLegend();
+      if (window.lucide) window.lucide.createIcons();
+    }
+    ["requiredReturn", "maxDrawdown", "maxVol", "maxBeta"].forEach(id => {
+      document.getElementById(id).addEventListener("input", e => {
+        state[id] = Number(e.target.value);
+        render();
+      });
+    });
+    document.getElementById("betaBenchmark").addEventListener("change", e => {
+      state.betaBenchmark = e.target.value;
+      render();
+    });
+    document.getElementById("concentrationMode").addEventListener("change", e => {
+      state.concentrationMode = e.target.value;
+      render();
+    });
+    document.getElementById("allowPaused").addEventListener("change", e => {
+      state.allowPaused = e.target.checked;
+      render();
+    });
+    document.getElementById("sectionFilter").addEventListener("change", e => {
+      state.section = e.target.value;
+      render();
+    });
+    document.getElementById("statusFilter").addEventListener("change", e => {
+      state.status = e.target.value;
+      render();
+    });
+    document.getElementById("sortSelect").addEventListener("change", e => {
+      state.sort = e.target.value;
+      render();
+    });
+    document.getElementById("searchInput").addEventListener("input", e => {
+      state.search = e.target.value;
+      render();
+    });
+    document.getElementById("resetBtn").addEventListener("click", () => {
+      Object.assign(state, structuredClone(defaultState));
+      render();
+    });
+    document.getElementById("detailClose").addEventListener("click", closeDetail);
+    document.getElementById("detailModal").addEventListener("click", e => {
+      if (e.target.id === "detailModal") closeDetail();
+    });
+    window.addEventListener("keydown", e => {
+      if (e.key === "Escape") closeDetail();
+    });
+    window.addEventListener("resize", () => {
+      const all = scoredFunds();
+      const eligible = eligibleFunds(all);
+      const portfolios = makePortfolios(eligible);
+      drawFrontier(portfolios, choosePortfolios(portfolios));
+      drawProductChart(all);
+    });
+    render();
+  </script>
+</body>
+</html>
