@@ -2,7 +2,7 @@
 set -euo pipefail
 
 APP_DIR="${APP_DIR:-/home/xavierx/www/investment_dashboard}"
-REPO_URL="${REPO_URL:-git@github.com:Lightningxxl/investment_dashboard.git}"
+REPO_URL="${REPO_URL:-https://github.com/Lightningxxl/investment_dashboard.git}"
 BRANCH="${BRANCH:-main}"
 
 if [ ! -d "$APP_DIR" ]; then

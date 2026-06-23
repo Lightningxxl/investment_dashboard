@@ -33,7 +33,7 @@ python3 -m http.server 8765
 ```bash
 ssh ff2
 mkdir -p /home/xavierx/www
-git clone git@github.com:Lightningxxl/investment_dashboard.git /home/xavierx/www/investment_dashboard
+git clone https://github.com/Lightningxxl/investment_dashboard.git /home/xavierx/www/investment_dashboard
 cd /home/xavierx/www/investment_dashboard
 python3 -m http.server 20242 --bind 127.0.0.1
 ```
