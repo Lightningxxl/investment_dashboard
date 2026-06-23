@@ -699,6 +699,8 @@
       width: 38px;
       height: 38px;
       border-radius: 50%;
+      border: 0;
+      color: var(--ink);
       display: grid;
       place-items: center;
       background: conic-gradient(var(--teal) 0deg, var(--teal) var(--angle), #e8eeee var(--angle), #e8eeee 360deg);
@@ -706,6 +708,8 @@
       font-size: 12px;
       font-weight: 900;
       font-variant-numeric: tabular-nums;
+      padding: 0;
+      cursor: pointer;
     }
     .score-ring::before {
       content: "";
@@ -715,6 +719,11 @@
       background: #fff;
     }
     .score-ring span { position: relative; }
+    .score-ring:hover,
+    .score-ring:focus-visible {
+      outline: 2px solid rgba(15, 118, 110, .22);
+      outline-offset: 2px;
+    }
     .reason-list {
       width: 260px;
       color: var(--muted);
@@ -1824,6 +1833,78 @@ AUM / 容量 = 当前未接入</code>
       `;
       document.getElementById("detailModal").hidden = false;
     }
+    function openProductScoreDetail(fund) {
+      if (!fund) return;
+      const totalWeight = Object.values(state.weights).reduce((s, v) => s + v, 0);
+      const dimensionRows = [
+        {
+          key: "history",
+          label: "历史样本长度",
+          source: `可用年度收益 ${fund.annualCount} 年；按 min(年度样本, 5) / 5 换算。`
+        },
+        {
+          key: "market",
+          label: "低大盘相关性",
+          source: `相对 ${state.betaBenchmark}：相关性 ${fmtNum(fund.marketCorr, 2)}，Beta ${fmtNum(fund.beta, 2)}。`
+        },
+        {
+          key: "concentration",
+          label: "低集中度风险",
+          source: `集中度风险 proxy ${fmtNum(fund.concentrationRisk, 2)}；由策略大类、策略标签和产品名称估算。`
+        },
+        {
+          key: "data",
+          label: "数据口径质量",
+          source: `基础 74；${fund.is_nav_stitched ? "[1] 拼接净值未加分" : "无 [1] +14"}；${fund.is_fee_deducted ? "[2] 费后口径 +8" : "未标 [2] +0"}；${fund.annualCount >= 3 ? "年度样本 >=3 +4" : "年度样本 <3 +0"}${fund.annualCount < 2 ? "；年度样本 <2 -12" : ""}${(!fund.fifty_underlying_start_date || fund.fifty_underlying_start_date === "-") ? "；50底层起始日缺失 -8" : ""}${fund.extraction_quality_notes ? "；抽取备注 -6" : ""}。`
+        }
+      ];
+      const contributionSum = dimensionRows.reduce((s, row) => s + fund.scores[row.key] * (state.weights[row.key] || 0), 0);
+      const rows = dimensionRows.map(row => {
+        const importance = state.weights[row.key] || 0;
+        const score = fund.scores[row.key];
+        return `
+          <tr>
+            <td>${row.label}</td>
+            <td>${escapeHtml(row.source)}</td>
+            <td class="num">${score.toFixed(1)}</td>
+            <td class="num">${importance}/5</td>
+            <td class="num">${(score * importance).toFixed(1)}</td>
+          </tr>
+        `;
+      }).join("");
+      const formula = totalWeight > 0
+        ? `综合分 = ${contributionSum.toFixed(1)} / ${totalWeight} = ${fund.scores.total.toFixed(1)}`
+        : `当前所有重要性均为 0，综合分使用默认值 ${fund.scores.total.toFixed(1)}`;
+      document.querySelector(".detail-card").classList.add("wide");
+      document.getElementById("detailTitle").textContent = "产品综合分计算";
+      document.getElementById("detailSubtitle").textContent = `${fund.product_name} · ${fund.manager_fund_manager_strategy_label || "管理人/策略标签缺失"}`;
+      document.getElementById("detailBody").innerHTML = `
+        <div class="detail-grid">
+          <div class="detail-metric"><span>综合分</span><strong>${Math.round(fund.scores.total)}</strong></div>
+          <div class="detail-metric"><span>历史收益折扣</span><strong>${Math.round(fund.haircut * 100)}%</strong></div>
+          <div class="detail-metric"><span>历史收益</span><strong>${fmtPct(fund.rawReturn, 1)}</strong></div>
+          <div class="detail-metric"><span>调整后收益</span><strong>${fmtPct(fund.adjReturn, 1)}</strong></div>
+        </div>
+        <div class="detail-block">
+          <strong>维度拆解</strong>
+          <div class="detail-table-wrap">
+            <table class="detail-table">
+              <thead><tr><th>维度</th><th>这个分怎么来</th><th>维度评分</th><th>左侧重要性</th><th>加权分</th></tr></thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>
+        </div>
+        <div class="detail-block">
+          <strong>最终计算</strong>
+          <div class="detail-rule">${formula}<br>历史收益折扣 = 45% + 55% × 综合分 / 100 = ${(fund.haircut * 100).toFixed(1)}%<br>调整后收益 = ${fund.rawReturn >= 0 ? "历史收益 × 历史收益折扣" : "历史收益为负，保留原始负收益"} = ${fmtPct(fund.adjReturn, 1)}</div>
+        </div>
+        <div class="detail-block">
+          <strong>怎么进入推荐组合</strong>
+          <p>综合分同时影响历史收益折扣和单品权重上限。分数越高，历史收益保留比例越高，且在当前组合敞口集中度设置下可获得更高的单品权重上限。</p>
+        </div>
+      `;
+      document.getElementById("detailModal").hidden = false;
+    }
     function escapeHtml(value) {
       return String(value ?? "")
         .replaceAll("&", "&amp;")
@@ -1903,7 +1984,7 @@ AUM / 容量 = 当前未接入</code>
         </div>
         <div class="detail-block">
           <strong>产品评分如何进入组合</strong>
-          <p>第 2 步先把每只产品算成综合评分；综合评分越高，历史收益折扣越少。单品权重上限由产品综合评分和左侧组合敞口集中度共同决定。组合模拟时，每只产品的调整后收益和权重上限都会参与计算。</p>
+          <p>第 2 步先把每只产品算成综合评分；综合评分越高，历史收益保留比例越高。单品权重上限由产品综合评分和左侧组合敞口集中度共同决定。组合模拟时，每只产品的调整后收益和权重上限都会参与计算。</p>
           <div class="detail-rule">产品综合评分 = Σ(维度评分 × 用户重要性) / Σ(用户重要性)<br>历史收益折扣 = 45% + 55% × 产品综合评分 / 100<br>调整后收益 = 历史收益 × 历史收益折扣</div>
         </div>
         <div class="detail-block">
@@ -2101,7 +2182,7 @@ AUM / 容量 = 当前未接入</code>
               </div>
             </td>
             <td><span class="tag ${sectionTags[f.section] || "gray"}">${f.section}</span><div class="panel-subtitle">${f.subsection || ""}</div></td>
-            <td><div class="score-cell"><div class="score-ring" style="--angle:${angle}deg"><span>${Math.round(f.scores.total)}</span></div></div></td>
+            <td><div class="score-cell"><button class="score-ring" data-score-detail="${f.id}" style="--angle:${angle}deg" type="button" aria-label="${escapeHtml(f.product_name)} 综合分计算详情"><span>${Math.round(f.scores.total)}</span></button></div></td>
             <td class="num">${Math.round(f.haircut * 100)}%</td>
             <td class="num ${f.adjReturn >= 0 ? "positive" : "negative"}">${fmtPct(f.adjReturn, 1)}</td>
             <td class="num ${f.rawReturn >= 0 ? "positive" : "negative"}">${fmtPct(f.rawReturn, 1)}</td>
@@ -2116,6 +2197,12 @@ AUM / 容量 = 当前未接入</code>
           </tr>
         `;
       }).join("");
+      body.querySelectorAll("[data-score-detail]").forEach(button => {
+        button.addEventListener("click", () => {
+          const fund = limited.find(item => String(item.id) === button.dataset.scoreDetail);
+          openProductScoreDetail(fund);
+        });
+      });
     }
     function drawAxes(ctx, w, h, pad, xLabel, yLabel) {
       ctx.strokeStyle = "#d9e0df";
