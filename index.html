@@ -486,6 +486,19 @@
       padding: 8px;
       min-height: 58px;
     }
+    .metric-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.3;
+    }
+    .metric-label .detail-btn {
+      width: 16px;
+      height: 16px;
+      font-size: 10px;
+    }
     .mini-metric span {
       display: block;
       color: var(--muted);
@@ -1789,6 +1802,27 @@ AUM / 容量 = 当前未接入</code>
       `;
       document.getElementById("detailModal").hidden = false;
     }
+    function openDrawdownProxyDetail() {
+      document.querySelector(".detail-card").classList.remove("wide");
+      document.getElementById("detailTitle").textContent = "回撤 proxy";
+      document.getElementById("detailSubtitle").textContent = "这是基于当前 PDF 数据估算出的组合回撤口径。";
+      document.getElementById("detailBody").innerHTML = `
+        <div class="detail-block">
+          <strong>为什么叫 proxy</strong>
+          <p>当前 PDF 只有年度收益和单产品历史最大回撤，没有月度、周度或日度净值，所以这里展示的是估算口径，用来做初筛和组合之间的相对比较。</p>
+        </div>
+        <div class="detail-block">
+          <strong>怎么估算</strong>
+          <p>先用年度收益拼出组合收益路径算一次回撤；再把单产品历史最大回撤按权重加权，并根据组合相关性给分散化折扣。最终取两者里更保守的一项。</p>
+          <div class="detail-rule">组合回撤 proxy = max(年度收益路径回撤, 单产品历史回撤加权平均 × 相关性折扣)</div>
+        </div>
+        <div class="detail-block">
+          <strong>怎么看这个数</strong>
+          <p>这个数适合判断当前推荐组合的风险大概位置。拿到月度或周度净值后，可以直接生成组合净值曲线，再计算真实的 peak-to-trough 最大回撤。</p>
+        </div>
+      `;
+      document.getElementById("detailModal").hidden = false;
+    }
     function escapeHtml(value) {
       return String(value ?? "")
         .replaceAll("&", "&amp;")
@@ -2005,7 +2039,7 @@ AUM / 容量 = 当前未接入</code>
             <div class="metric-row">
               <div class="mini-metric"><span>预期收益</span><strong>${fmtPct(p.ret, 1)}</strong></div>
               <div class="mini-metric"><span>波动</span><strong>${fmtPct(p.vol, 1)}</strong></div>
-              <div class="mini-metric"><span>回撤</span><strong>${fmtPct(p.dd, 1)}</strong></div>
+              <div class="mini-metric"><div class="metric-label">回撤 proxy <button class="detail-btn" data-drawdown-info type="button" aria-label="回撤 proxy 说明">i</button></div><strong>${fmtPct(p.dd, 1)}</strong></div>
               <div class="mini-metric"><span>Beta</span><strong>${fmtNum(p.beta, 2)}</strong></div>
             </div>
             <div class="holdings">${holdings}</div>
@@ -2013,10 +2047,23 @@ AUM / 容量 = 当前未接入</code>
           </article>
         `;
       }).join("");
+      box.querySelectorAll("[data-drawdown-info]").forEach(button => {
+        button.addEventListener("click", event => {
+          event.stopPropagation();
+          openDrawdownProxyDetail();
+        });
+        button.addEventListener("keydown", event => {
+          event.stopPropagation();
+        });
+      });
       box.querySelectorAll("[data-portfolio-index]").forEach(card => {
         const portfolio = selectedList[Number(card.dataset.portfolioIndex)];
-        card.addEventListener("click", () => openPortfolioDetail(portfolio));
+        card.addEventListener("click", event => {
+          if (event.target.closest("[data-drawdown-info]")) return;
+          openPortfolioDetail(portfolio);
+        });
         card.addEventListener("keydown", event => {
+          if (event.target.closest("[data-drawdown-info]")) return;
           if (event.key === "Enter" || event.key === " ") {
             event.preventDefault();
             openPortfolioDetail(portfolio);
