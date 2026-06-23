@@ -231,6 +231,12 @@
       font-size: 13px;
       font-variant-numeric: tabular-nums;
     }
+    .field-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+    }
     .field-help {
       color: var(--muted);
       font-size: 12px;
@@ -485,19 +491,6 @@
       border-radius: 8px;
       padding: 8px;
       min-height: 58px;
-    }
-    .metric-label {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      color: var(--muted);
-      font-size: 11px;
-      line-height: 1.3;
-    }
-    .metric-label .detail-btn {
-      width: 16px;
-      height: 16px;
-      font-size: 10px;
     }
     .mini-metric span {
       display: block;
@@ -969,7 +962,10 @@
           <p class="field-help">组合调整后预期年化收益目标。当前用完整年度均值 + 历史收益折扣估算。</p>
         </div>
         <div class="field">
-          <div class="field-row"><span>Max drawdown</span><strong><span id="maxDrawdownVal"></span>%</strong></div>
+          <div class="field-row">
+            <span class="field-label">Max drawdown <button class="detail-btn" id="drawdownInfoBtn" type="button" aria-label="Max drawdown proxy 说明">i</button></span>
+            <strong><span id="maxDrawdownVal"></span>%</strong>
+          </div>
           <input id="maxDrawdown" type="range" min="3" max="40" step="0.5" value="15">
           <p class="field-help">组合最大回撤预算。当前用年度净值回撤和产品历史回撤做 proxy。</p>
         </div>
@@ -1814,8 +1810,8 @@ AUM / 容量 = 当前未接入</code>
     }
     function openDrawdownProxyDetail() {
       document.querySelector(".detail-card").classList.remove("wide");
-      document.getElementById("detailTitle").textContent = "回撤 proxy";
-      document.getElementById("detailSubtitle").textContent = "这是基于当前 PDF 数据估算出的组合回撤口径。";
+      document.getElementById("detailTitle").textContent = "Max drawdown / 回撤 proxy";
+      document.getElementById("detailSubtitle").textContent = "左侧组合目标中的最大回撤预算使用这个估算口径。";
       document.getElementById("detailBody").innerHTML = `
         <div class="detail-block">
           <strong>为什么叫 proxy</strong>
@@ -2121,7 +2117,7 @@ AUM / 容量 = 当前未接入</code>
             <div class="metric-row">
               <div class="mini-metric"><span>预期收益</span><strong>${fmtPct(p.ret, 1)}</strong></div>
               <div class="mini-metric"><span>波动</span><strong>${fmtPct(p.vol, 1)}</strong></div>
-              <div class="mini-metric"><div class="metric-label">回撤 proxy <button class="detail-btn" data-drawdown-info type="button" aria-label="回撤 proxy 说明">i</button></div><strong>${fmtPct(p.dd, 1)}</strong></div>
+              <div class="mini-metric"><span>回撤 proxy</span><strong>${fmtPct(p.dd, 1)}</strong></div>
               <div class="mini-metric"><span>Beta</span><strong>${fmtNum(p.beta, 2)}</strong></div>
             </div>
             <div class="holdings">${holdings}</div>
@@ -2129,23 +2125,10 @@ AUM / 容量 = 当前未接入</code>
           </article>
         `;
       }).join("");
-      box.querySelectorAll("[data-drawdown-info]").forEach(button => {
-        button.addEventListener("click", event => {
-          event.stopPropagation();
-          openDrawdownProxyDetail();
-        });
-        button.addEventListener("keydown", event => {
-          event.stopPropagation();
-        });
-      });
       box.querySelectorAll("[data-portfolio-index]").forEach(card => {
         const portfolio = selectedList[Number(card.dataset.portfolioIndex)];
-        card.addEventListener("click", event => {
-          if (event.target.closest("[data-drawdown-info]")) return;
-          openPortfolioDetail(portfolio);
-        });
+        card.addEventListener("click", () => openPortfolioDetail(portfolio));
         card.addEventListener("keydown", event => {
-          if (event.target.closest("[data-drawdown-info]")) return;
           if (event.key === "Enter" || event.key === " ") {
             event.preventDefault();
             openPortfolioDetail(portfolio);
@@ -2360,6 +2343,7 @@ AUM / 容量 = 当前未接入</code>
       Object.assign(state, structuredClone(defaultState));
       render();
     });
+    document.getElementById("drawdownInfoBtn").addEventListener("click", openDrawdownProxyDetail);
     document.getElementById("detailClose").addEventListener("click", closeDetail);
     document.getElementById("detailModal").addEventListener("click", e => {
       if (e.target.id === "detailModal") closeDetail();
