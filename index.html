@@ -1011,9 +1011,9 @@
     <section class="main">
       <section class="stats-grid">
         <article class="stat">
-          <span>合格候选</span>
-          <strong id="eligibleCount">0</strong>
-          <small>满足申购状态、基础数据和评分条件</small>
+          <span>优化候选池</span>
+          <strong id="candidatePoolCount">0</strong>
+          <small id="candidatePoolText">从合格候选中分层入池</small>
         </article>
         <article class="stat">
           <span>可行组合</span>
@@ -1097,7 +1097,16 @@
 历史收益折扣 = 45% + 55% × 产品综合评分 / 100</code>
           </div>
           <div class="method-item">
-            <strong>3. 指标计算</strong>
+            <strong>3. 候选池</strong>
+            <span>进入组合优化前先构建候选池：硬过滤、策略分层、相似暴露去重，并保留低相关策略的代表产品。</span>
+            <code>候选池 =
+合格产品
+→ 按策略分层取代表产品
+→ 去掉高度相似产品
+→ 保留低相关策略名额</code>
+          </div>
+          <div class="method-item">
+            <strong>4. 指标计算</strong>
             <span>当前 PDF 只有年度收益，所以波动、beta 和相关性均为年度 proxy。</span>
             <code>历史收益 = 年度收益均值
 波动 = 年度收益标准差
@@ -1105,7 +1114,7 @@ Beta = Cov(产品, benchmark) / Var(benchmark)
 相关性 = Corr(产品, benchmark)</code>
           </div>
           <div class="method-item">
-            <strong>4. 当前限制</strong>
+            <strong>5. 当前限制</strong>
             <span>没有月度净值、持仓行业和 AUM 数据；集中度风险、相关性矩阵和容量质量仍是 proxy。</span>
             <code>集中度 = 策略分类 + 标签 proxy
 相关性矩阵 = 年度收益 + 策略关系
@@ -1253,6 +1262,7 @@ AUM / 容量 = 当前未接入</code>
         help: "更偏分散配置。目标 7-8 只；最高分产品单品上限 20%，单一策略大类上限 45%。",
         minFunds: 7,
         maxFunds: 8,
+        candidateTarget: 50,
         sectionCap: 0.45,
         caps: [
           { minScore: 85, cap: 0.20 },
@@ -1268,6 +1278,7 @@ AUM / 容量 = 当前未接入</code>
         help: "默认口径。目标 6-8 只；最高分产品单品上限 25%，单一策略大类上限 55%。",
         minFunds: 6,
         maxFunds: 8,
+        candidateTarget: 40,
         sectionCap: 0.55,
         caps: [
           { minScore: 85, cap: 0.25 },
@@ -1283,6 +1294,7 @@ AUM / 容量 = 当前未接入</code>
         help: "更贴近个人投资者的集中持有。目标 5-6 只；最高分产品单品上限 30%，单一策略大类上限 65%。",
         minFunds: 5,
         maxFunds: 6,
+        candidateTarget: 32,
         sectionCap: 0.65,
         caps: [
           { minScore: 85, cap: 0.30 },
@@ -1621,6 +1633,139 @@ AUM / 容量 = 当前未接入</code>
       const empirical = denA && denB ? clamp(num / (denA * denB), -0.4, 0.95) : corrBase(a, b);
       return clamp(empirical * 0.55 + corrBase(a, b) * 0.45, -0.2, 0.95);
     }
+    let lastCandidatePoolMeta = { count: 0, eligibleCount: 0, target: 0, coreCount: 0 };
+    function isDiversifierSection(section) {
+      return ["市场中性", "管理期货", "债券主动投资", "债券主动投资-全球配置工具", "多策略", "宏观及商品策略III"].includes(section);
+    }
+    function riskTightMode() {
+      return state.maxBeta <= 0.45 || state.maxDrawdown <= 12 || state.maxVol <= 14;
+    }
+    function returnSeekingMode() {
+      return state.requiredReturn >= 14 && state.maxDrawdown >= 16;
+    }
+    function candidatePriority(f) {
+      const riskTight = riskTightMode();
+      const returnSeeking = returnSeekingMode();
+      let priority = f.scores.total;
+      priority += clamp(1 - f.marketCorr, 0, 1) * (riskTight ? 14 : 8);
+      priority += clamp(state.maxBeta - f.beta, -0.6, 0.8) * (riskTight ? 8 : 3);
+      priority += (100 - f.concentrationRisk * 100) * 0.04;
+      priority += Math.max(0, f.adjReturn) * (returnSeeking ? 0.18 : 0.08);
+      if (isDiversifierSection(f.section)) priority += riskTight ? 8 : 4;
+      if (isEquitySection(f.section) && returnSeeking) priority += 4;
+      if (f.is_nav_stitched) priority -= 2;
+      if (f.scores.data < 60) priority -= 3;
+      return priority;
+    }
+    function candidateSectionCap(section, target) {
+      const riskTight = riskTightMode();
+      const returnSeeking = returnSeekingMode();
+      let fraction = {
+        "量化选股": 0.24,
+        "主观选股": 0.22,
+        "市场中性": 0.16,
+        "债券主动投资": 0.14,
+        "管理期货": 0.12,
+        "多策略": 0.10,
+        "宏观及商品策略III": 0.08,
+        "灵活配置型": 0.08,
+        "主观选股-全球配置工具": 0.06,
+        "债券主动投资-全球配置工具": 0.06,
+        "多空策略": 0.06,
+        "REITs": 0.05
+      }[section] ?? 0.08;
+      if (riskTight && isEquitySection(section)) fraction -= 0.04;
+      if (riskTight && isDiversifierSection(section)) fraction += 0.04;
+      if (returnSeeking && isEquitySection(section)) fraction += 0.04;
+      return Math.max(2, Math.ceil(target * clamp(fraction, 0.04, 0.30)));
+    }
+    function sameManager(a, b) {
+      const am = a.manager_name_guess || a.manager_fund_manager_strategy_label || "";
+      const bm = b.manager_name_guess || b.manager_fund_manager_strategy_label || "";
+      return am && bm && am === bm;
+    }
+    function similarExposure(a, b, threshold) {
+      const c = correlation(a, b);
+      const sameSection = a.section === b.section;
+      const sameSubsection = a.subsection && b.subsection && a.subsection === b.subsection;
+      if (c > threshold && (sameSection || sameSubsection || sameManager(a, b))) return true;
+      if (sameManager(a, b) && sameSection && c > 0.70) return true;
+      return false;
+    }
+    function buildCandidatePool(funds, profile) {
+      if (!funds.length) {
+        lastCandidatePoolMeta = { count: 0, eligibleCount: 0, target: 0, coreCount: 0 };
+        return [];
+      }
+      const target = Math.min(profile.candidateTarget || 40, funds.length);
+      const hard = funds.filter(f => f.scores.total >= 45 && f.annualCount >= 2 && f.scores.data >= 50);
+      const core = hard.length >= Math.max(profile.minFunds * 3, 15)
+        ? hard
+        : funds.filter(f => f.scores.total >= 35);
+      const ranked = core
+        .map(f => ({ ...f, candidatePriority: candidatePriority(f), candidateReason: "" }))
+        .sort((a, b) => b.candidatePriority - a.candidatePriority || b.scores.total - a.scores.total || a.id - b.id);
+      const sectionCaps = new Map();
+      const sectionCounts = new Map();
+      const managerCounts = new Map();
+      const selected = [];
+      const addCandidate = (fund, reason, options = {}) => {
+        if (!fund || selected.some(item => item.id === fund.id) || selected.length >= target) return false;
+        const sectionCap = sectionCaps.get(fund.section) ?? candidateSectionCap(fund.section, target);
+        sectionCaps.set(fund.section, sectionCap);
+        const currentSectionCount = sectionCounts.get(fund.section) || 0;
+        if (!options.relaxed && currentSectionCount >= sectionCap) return false;
+        const manager = fund.manager_name_guess || fund.manager_fund_manager_strategy_label || "unknown";
+        const currentManagerCount = managerCounts.get(manager) || 0;
+        if (!options.relaxed && currentManagerCount >= 2) return false;
+        const corrThreshold = options.relaxed ? 0.93 : 0.86;
+        if (!options.relaxed && selected.some(existing => similarExposure(fund, existing, corrThreshold))) return false;
+        selected.push({ ...fund, candidateReason: reason });
+        sectionCounts.set(fund.section, currentSectionCount + 1);
+        managerCounts.set(manager, currentManagerCount + 1);
+        return true;
+      };
+
+      const bySection = new Map();
+      ranked.forEach(f => {
+        if (!bySection.has(f.section)) bySection.set(f.section, []);
+        bySection.get(f.section).push(f);
+      });
+      [...bySection.values()]
+        .map(list => list[0])
+        .sort((a, b) => b.candidatePriority - a.candidatePriority)
+        .forEach(f => addCandidate(f, "策略分层代表"));
+
+      const sleeveRules = [
+        { section: "市场中性", min: riskTightMode() ? 4 : 2 },
+        { section: "债券主动投资", min: riskTightMode() ? 3 : 2 },
+        { section: "管理期货", min: 2 },
+        { section: "多策略", min: 2 },
+        { section: "宏观及商品策略III", min: 1 }
+      ];
+      sleeveRules.forEach(rule => {
+        const list = bySection.get(rule.section) || [];
+        let count = selected.filter(f => f.section === rule.section).length;
+        for (const fund of list) {
+          if (count >= rule.min || selected.length >= target) break;
+          if (addCandidate(fund, "低相关策略保留")) count += 1;
+        }
+      });
+
+      ranked.forEach(f => addCandidate(f, "综合优先级补足"));
+      if (selected.length < Math.min(target, profile.minFunds * 3)) {
+        ranked.forEach(f => addCandidate(f, "补足候选池", { relaxed: true }));
+      }
+      selected.sort((a, b) => b.candidatePriority - a.candidatePriority || b.scores.total - a.scores.total || a.id - b.id);
+      lastCandidatePoolMeta = {
+        count: selected.length,
+        eligibleCount: funds.length,
+        target,
+        coreCount: core.length,
+        sectionCount: new Set(selected.map(f => f.section)).size
+      };
+      return selected;
+    }
     function enforceCaps(items, weights) {
       if (items.reduce((s, item) => s + item.cap, 0) < 0.999) return null;
       let w = weights.slice();
@@ -1695,13 +1840,16 @@ AUM / 容量 = 当前未接入</code>
       return { label, items, weights, ret, beta, vol, dd, productScore, feasible, misses, annual };
     }
     function makePortfolios(eligible) {
-      if (!eligible.length) return [];
+      if (!eligible.length) {
+        lastCandidatePoolMeta = { count: 0, eligibleCount: 0, target: 0, coreCount: 0, sectionCount: 0 };
+        return [];
+      }
       const profile = activeConcentrationProfile();
       const { bySection, global } = sectionYearAverages(eligible);
-      const pool = eligible
-        .map(f => ({ ...f, vector: fullVector(f, bySection, global) }))
-        .sort((a, b) => b.scores.total - a.scores.total)
-        .slice(0, 42);
+      const pool = buildCandidatePool(
+        eligible.map(f => ({ ...f, vector: fullVector(f, bySection, global) })),
+        profile
+      );
       const portfolios = [];
       const rng = seededRandom(20260618);
       const topCount = Math.min(profile.maxFunds, pool.length);
@@ -1937,6 +2085,7 @@ AUM / 容量 = 当前未接入</code>
       ];
       const weightText = weightDefinitions.map(def => `${def.label}: ${state.weights[def.key]}/5`).join("；");
       const profile = activeConcentrationProfile();
+      const candidateMeta = lastCandidatePoolMeta || {};
       const holdings = portfolio.items
         .map((f, i) => ({ f, w: portfolio.weights[i] }))
         .sort((a, b) => b.w - a.w);
@@ -1965,7 +2114,7 @@ AUM / 容量 = 当前未接入</code>
         </div>
         <div class="detail-block">
           <strong>当前输入快照</strong>
-          <p>Beta benchmark：${escapeHtml(state.betaBenchmark)}。组合敞口集中度：${escapeHtml(profile.label)}（${escapeHtml(profile.range)}）。评分偏好：${escapeHtml(weightText)}。暂停申购产品${state.allowPaused ? "允许" : "不允许"}进入优化池。</p>
+          <p>Beta benchmark：${escapeHtml(state.betaBenchmark)}。组合敞口集中度：${escapeHtml(profile.label)}（${escapeHtml(profile.range)}）。候选池：${candidateMeta.count || 0} / ${candidateMeta.eligibleCount || 0} 只，覆盖 ${candidateMeta.sectionCount || 0} 个策略大类。评分偏好：${escapeHtml(weightText)}。暂停申购产品${state.allowPaused ? "允许" : "不允许"}进入优化池。</p>
         </div>
         <div class="detail-block">
           <strong>目标约束检查</strong>
@@ -2067,7 +2216,9 @@ AUM / 容量 = 当前未接入</code>
     }
     function renderStats(eligible, portfolios, selected) {
       document.getElementById("dataCount").textContent = baseFunds.length;
-      document.getElementById("eligibleCount").textContent = eligible.length;
+      const candidateMeta = lastCandidatePoolMeta || {};
+      document.getElementById("candidatePoolCount").textContent = candidateMeta.count || 0;
+      document.getElementById("candidatePoolText").textContent = `从 ${eligible.length} 只合格候选中入池；覆盖 ${candidateMeta.sectionCount || 0} 个策略大类`;
       document.getElementById("feasibleCount").textContent = portfolios.filter(p => p.feasible).length;
       document.getElementById("recommendedName").textContent = selected?.label ? selected.label.replace("组合", "") : "-";
       const rr = state.requiredReturn / Math.max(state.maxDrawdown, 1);
