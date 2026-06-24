@@ -6,7 +6,7 @@
   <title>子基金组合工作台 V2</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23155e75'/%3E%3Cpath d='M16 44h32M16 32h24M16 20h14' stroke='white' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E">
   <script src="./lucide-lite.js"></script>
-  <script src="./china50_fund_pool_data.js"></script>
+  <script src="./data/dashboard_data.js"></script>
   <style>
     :root {
       --topbar-h: 72px;
@@ -63,12 +63,14 @@
       align-items: center;
       justify-content: space-between;
       gap: 14px;
+      min-width: 0;
     }
     .brand {
       display: flex;
       align-items: center;
       gap: 12px;
       min-width: 0;
+      flex: 1 1 420px;
     }
     .mark {
       width: 38px;
@@ -101,10 +103,21 @@
     .brand > div { min-width: 0; }
     .top-actions {
       display: flex;
-      gap: 8px;
+      gap: 6px;
       align-items: center;
+      justify-content: flex-end;
       overflow-x: auto;
-      max-width: 52vw;
+      max-width: none;
+      min-width: 0;
+      flex: 0 1 auto;
+      padding-bottom: 2px;
+      scrollbar-width: thin;
+    }
+    .top-actions .pill {
+      flex: 0 0 auto;
+      min-height: 32px;
+      padding: 0 9px;
+      font-size: 12px;
     }
     .pill, .btn {
       min-height: 34px;
@@ -133,6 +146,16 @@
       background: var(--teal);
       border-color: var(--teal);
       color: #fff;
+    }
+    .btn:disabled {
+      cursor: default;
+      opacity: .58;
+    }
+    .calc-status {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
     }
 
     .layout {
@@ -884,14 +907,137 @@
       font-size: 12px;
       line-height: 1.55;
     }
+    .guide-doc {
+      display: grid;
+      gap: 12px;
+      color: var(--ink);
+    }
+    .guide-lead {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.65;
+    }
+    .guide-toc {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+    .guide-toc span,
+    .guide-note {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfcfc;
+      padding: 10px;
+      font-size: 12px;
+      line-height: 1.45;
+      color: var(--muted);
+    }
+    .guide-section {
+      padding-top: 14px;
+      border-top: 1px solid var(--line-soft);
+    }
+    .guide-section h4 {
+      margin: 0 0 8px;
+      font-size: 15px;
+      line-height: 1.35;
+    }
+    .guide-section p,
+    .guide-section li {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.65;
+    }
+    .guide-section p { margin: 0 0 8px; }
+    .guide-section ul {
+      margin: 8px 0 0;
+      padding-left: 18px;
+    }
+    .guide-flow {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .guide-flow span {
+      min-height: 46px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      display: grid;
+      place-items: center;
+      padding: 8px;
+      text-align: center;
+      font-weight: 800;
+      font-size: 12px;
+      line-height: 1.35;
+    }
+    .guide-kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .guide-kpi-grid div {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      background: #fff;
+    }
+    .guide-kpi-grid strong {
+      display: block;
+      margin-bottom: 4px;
+      font-size: 13px;
+    }
+    .guide-kpi-grid span {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    .guide-code {
+      display: block;
+      margin-top: 8px;
+      padding: 10px;
+      border-radius: 8px;
+      background: #f6f8f8;
+      color: var(--ink);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 12px;
+      line-height: 1.55;
+      white-space: pre-wrap;
+    }
 
     @media (max-width: 1180px) {
+      :root { --topbar-h: 118px; }
       html, body {
         height: auto;
         overflow: auto;
       }
       .topbar {
         position: sticky;
+        height: auto;
+        min-height: var(--topbar-h);
+        padding: 12px;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+      }
+      .brand {
+        width: 100%;
+        flex: 0 0 auto;
+      }
+      .top-actions {
+        width: 100%;
+        max-width: 100%;
+        justify-content: flex-start;
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        padding-bottom: 2px;
+        flex: 0 0 auto;
+      }
+      .top-actions .pill {
+        width: auto;
+        flex: 0 0 auto;
       }
       .layout {
         grid-template-columns: 1fr;
@@ -913,12 +1059,15 @@
       .cards-grid, .chart-grid { grid-template-columns: 1fr; }
     }
     @media (max-width: 740px) {
+      :root { --topbar-h: 150px; }
       .topbar {
         align-items: flex-start;
         flex-direction: column;
       }
-      .brand { width: 100%; }
-      .top-actions { max-width: 100%; width: 100%; }
+      .top-actions {
+        flex-wrap: wrap;
+        overflow-x: visible;
+      }
       .layout { padding: 12px; }
       .sidebar, .method, .stats-grid { grid-template-columns: 1fr; }
       .detail-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -926,6 +1075,7 @@
       .chart-wrap { height: 260px; }
       .table-toolbar { align-items: stretch; }
       select, .btn { width: 100%; }
+      .guide-toc, .guide-flow, .guide-kpi-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -935,14 +1085,16 @@
       <div class="mark"><i data-lucide="sliders-horizontal" class="icon"></i></div>
       <div>
         <h1>子基金组合工作台 V2</h1>
-        <p>组合目标 -> 评分偏好 -> 有效前沿/推荐组合 · 数据来自中国50研选池 PDF</p>
+        <p>投资政策 -> 可投标的池 -> 参数估计 -> 组合优化 -> 结果解释 · SQLite 数据层</p>
       </div>
     </div>
     <div class="top-actions">
+      <button class="pill" id="methodGuideBtn" type="button"><i data-lucide="help-circle" class="icon"></i>方法说明</button>
       <span class="pill"><i data-lucide="database" class="icon"></i><strong id="dataCount">0</strong> 只产品</span>
-      <span class="pill"><i data-lucide="crosshair" class="icon"></i>Beta: <strong id="benchmarkPill">-</strong></span>
-      <span class="pill"><i data-lucide="shield-check" class="icon"></i>年度波动/相关性为 proxy</span>
-      <a class="pill" href="./china50_fund_pool_data.csv"><i data-lucide="file-check-2" class="icon"></i>CSV</a>
+      <span class="pill"><i data-lucide="file-check-2" class="icon"></i>明细 <strong id="detailCount">0</strong> 只</span>
+      <span class="pill" title="当前 Beta benchmark"><i data-lucide="target" class="icon"></i>Beta <strong id="benchmarkPill">-</strong></span>
+      <span class="pill" title="未匹配产品使用估算参数"><i data-lucide="shield-check" class="icon"></i>估算参数</span>
+      <a class="pill" href="./data/china50_fund_pool.csv"><i data-lucide="file-check-2" class="icon"></i>CSV</a>
     </div>
   </header>
 
@@ -951,59 +1103,74 @@
       <section class="panel">
         <div class="panel-head">
           <div>
-            <h2 class="panel-title"><span class="step-badge">1</span>组合目标</h2>
-            <p class="panel-subtitle">这些是组合优化的硬约束。收益目标越高，通常需要放宽回撤、波动或 beta 暴露。</p>
+            <h2 class="panel-title"><span class="step-badge">1</span>投资目标与约束</h2>
+            <p class="panel-subtitle">这一组输入相当于投资政策：定义收益目标、风险预算、beta 暴露和组合集中度。</p>
           </div>
         </div>
 
         <div class="field">
           <div class="field-row"><span>Required return</span><strong><span id="requiredReturnVal"></span>%</strong></div>
           <input id="requiredReturn" type="range" min="-2" max="35" step="0.5" value="10">
-          <p class="field-help">组合调整后预期年化收益目标。当前用完整年度均值 + 历史收益折扣估算。</p>
+          <p class="field-help">组合预期年化收益下限。产品 μ = 历史年化 × 收益置信折扣（45%-100%），组合 μ 为持仓加权。低于下限判定"收益不足"。</p>
         </div>
         <div class="field">
           <div class="field-row">
-            <span class="field-label">Max drawdown <button class="detail-btn" id="drawdownInfoBtn" type="button" aria-label="Max drawdown proxy 说明">i</button></span>
+            <span class="field-label">Max drawdown <button class="detail-btn" id="drawdownInfoBtn" type="button" aria-label="Max drawdown 估算口径说明">i</button></span>
             <strong><span id="maxDrawdownVal"></span>%</strong>
           </div>
           <input id="maxDrawdown" type="range" min="3" max="40" step="0.5" value="15">
-          <p class="field-help">组合最大回撤预算。当前用年度净值回撤和产品历史回撤做 proxy。</p>
+          <p class="field-help">组合最大回撤预算。组合回撤 = max(年度路径回撤, 加权单品回撤×相关性折扣)。点 i 查看完整估计方法。</p>
         </div>
         <div class="field">
           <div class="field-row"><span>Max standard deviation</span><strong><span id="maxVolVal"></span>%</strong></div>
           <input id="maxVol" type="range" min="3" max="45" step="0.5" value="18">
-          <p class="field-help">组合波动上限。PDF 没有月度净值，当前用年度收益离散度估算。</p>
+          <p class="field-help">组合波动上限。组合 σ = √(wᵀ·Σ·w)，Σ 由单品波动率和两两相关性构成。Excel 明细优先，PDF 用年度收益标准差兜底。</p>
         </div>
         <div class="field">
           <div class="field-row"><span>Beta benchmark</span><strong id="betaBenchmarkLabel"></strong></div>
           <select id="betaBenchmark"></select>
-          <p class="field-help">组合 beta 和低大盘相关性都相对这个基准计算。切换后会实时重算产品分数和推荐组合。</p>
+          <p class="field-help">所有产品的 Beta 和相关性均相对此基准计算。样本不足时用年度收益回归 + 策略先验做贝叶斯混合。切换后触发全量重算。</p>
         </div>
         <div class="field">
           <div class="field-row"><span>Max beta exposure</span><strong><span id="maxBetaVal"></span></strong></div>
           <input id="maxBeta" type="range" min="0" max="1.5" step="0.05" value="0.55">
-          <p class="field-help">相对当前 Beta benchmark 的组合 beta 上限。样本不足时会引入策略 beta 先验。</p>
+          <p class="field-help">相对当前 Beta benchmark 的组合 beta 上限。样本不足时引入策略 beta 先验。</p>
         </div>
         <div class="field">
           <div class="field-row"><span>组合敞口集中度</span><strong id="concentrationModeLabel"></strong></div>
           <select id="concentrationMode"></select>
           <p class="field-help" id="concentrationModeHelp"></p>
         </div>
+        <div class="field">
+          <div class="field-row"><span>组合权重方式</span><strong id="weightModeLabel"></strong></div>
+          <select id="weightMode">
+            <option value="equal">等权模式</option>
+            <option value="tilted">质量倾斜模式</option>
+          </select>
+          <p class="field-help" id="weightModeHelp"></p>
+        </div>
+        <div class="field" id="equalFundCountField">
+          <div class="field-row"><span>等权基金数量</span><strong><span id="equalFundCountVal"></span> 只</strong></div>
+          <input id="equalFundCount" type="range" min="5" max="8" step="1" value="8">
+          <p class="field-help">等权模式下每只基金权重固定为 1 / K。K 越高，单只 ops risk 对组合的冲击越低。</p>
+        </div>
       </section>
 
       <section class="panel">
         <div class="panel-head">
           <div>
-            <h2 class="panel-title"><span class="step-badge">2</span>评分偏好</h2>
-            <p class="panel-subtitle">给每个产品维度 0-5 分重要性。系统自动归一化，相同分值代表同等看重。</p>
+            <h2 class="panel-title"><span class="step-badge">2</span>参数偏好</h2>
+            <p class="panel-subtitle">设置你对参数质量的相对重视程度。系统自动归一化，用于调整收益置信度和权重上限。</p>
           </div>
         </div>
         <div class="weight-summary" id="weightSummary"></div>
         <div class="weight-grid" id="weightControls"></div>
         <label class="switch-row">
-          <span>暂停申购产品进入优化池</span>
+          <span>暂停申购产品进入可投标的池</span>
           <span class="switch"><input id="allowPaused" type="checkbox"><span class="track"></span></span>
         </label>
+        <button class="btn primary full" id="applyBtn" type="button"><i data-lucide="pie-chart" class="icon"></i>应用并计算</button>
+        <p class="calc-status" id="applyStatus">当前右侧结果已应用左侧参数。</p>
         <button class="btn full" id="resetBtn"><i data-lucide="rotate-ccw" class="icon"></i>重置参数</button>
       </section>
     </aside>
@@ -1011,32 +1178,32 @@
     <section class="main">
       <section class="stats-grid">
         <article class="stat">
-          <span>优化候选池</span>
+          <span>资产池构建</span>
           <strong id="candidatePoolCount">0</strong>
-          <small id="candidatePoolText">从合格候选中分层入池</small>
+          <small id="candidatePoolText">优化资产池 / 可投标的池</small>
         </article>
         <article class="stat">
-          <span>可行组合</span>
+          <span>可行解</span>
           <strong id="feasibleCount">0</strong>
-          <small>同时满足目标收益、回撤、波动和 beta 约束</small>
+          <small id="feasibleText">同时满足收益、回撤、波动和 beta 约束</small>
         </article>
         <article class="stat">
-          <span>目标压力</span>
+          <span>约束压力</span>
           <strong id="goalPressure">-</strong>
           <small id="goalPressureText">收益目标与风险预算的联动提示</small>
         </article>
         <article class="stat">
-          <span>推荐组合</span>
+          <span>最优组合</span>
           <strong id="recommendedName">-</strong>
-          <small>从模拟组合中按目标适配度选择</small>
+          <small>在可行解中按效用函数选择</small>
         </article>
       </section>
 
       <section class="panel">
         <div class="panel-head">
           <div>
-            <h2 class="panel-title"><span class="step-badge">3</span>推荐组合</h2>
-            <p class="panel-subtitle">评分偏好影响收益折扣和单品权重上限；组合目标决定哪些组合可行。</p>
+            <h2 class="panel-title"><span class="step-badge">5</span>目标约束下最优组合</h2>
+            <p class="panel-subtitle">参数偏好影响预期收益折扣和单品权重上限；投资目标决定哪些组合解可行。</p>
           </div>
         </div>
         <div class="cards-grid" id="portfolioCards"></div>
@@ -1046,24 +1213,24 @@
         <article class="panel">
           <div class="panel-head">
             <div>
-              <h2 class="panel-title">组合有效前沿 proxy</h2>
-              <p class="panel-subtitle">横轴为组合年度波动 proxy，纵轴为调整后预期收益。</p>
+              <h2 class="panel-title">风险-收益可行前沿</h2>
+              <p class="panel-subtitle">横轴为组合波动估计，纵轴为预期收益；高亮点为满足约束的组合解。</p>
             </div>
             <span class="tag teal">Portfolio</span>
           </div>
           <div class="chart-wrap"><canvas id="frontierCanvas"></canvas></div>
           <div class="legend">
-            <span><i class="dot" style="background:#d1d5db"></i>模拟组合</span>
-            <span><i class="dot" style="background:#0f766e"></i>满足目标</span>
-            <span><i class="dot" style="background:#be123c"></i>推荐组合</span>
+            <span><i class="dot" style="background:#d1d5db"></i><span id="frontierPointLabel">搜索生成解</span></span>
+            <span><i class="dot" style="background:#0f766e"></i>可行解</span>
+            <span><i class="dot" style="background:#be123c"></i>最优解</span>
           </div>
         </article>
 
         <article class="panel">
           <div class="panel-head">
             <div>
-              <h2 class="panel-title">产品收益 - 回撤边界</h2>
-              <p class="panel-subtitle">横轴为历史最大回撤绝对值，纵轴为调整后预期收益，点大小代表产品分数。</p>
+              <h2 class="panel-title">单基金风险收益散点图</h2>
+              <p class="panel-subtitle">横轴为历史最大回撤绝对值，纵轴为预期收益 μ，点大小代表参数质量分。</p>
             </div>
             <span class="tag blue">Product</span>
           </div>
@@ -1075,50 +1242,58 @@
       <section class="panel">
         <div class="panel-head">
           <div>
-            <h2 class="panel-title">模型计算口径</h2>
-            <p class="panel-subtitle">第 1 步定义组合合格线，第 2 步定义产品评分偏好。</p>
+            <h2 class="panel-title">分析流程与模型口径</h2>
+            <p class="panel-subtitle">六步链路：每个步骤的输出是下一步的输入。点击顶部"方法说明"可查看完整推导和公式。</p>
           </div>
         </div>
         <div class="method">
           <div class="method-item">
-            <strong>1. 组合目标</strong>
-            <span>用于过滤模拟组合。收益、回撤、波动和 beta 同时满足时，组合进入可行集合。</span>
+            <strong>1. 投资政策</strong>
+            <span>定义组合的四个硬约束。收益、回撤、波动和 Beta 必须同时满足，组合才进入可行集合。</span>
             <code>组合收益 >= Required return
 组合回撤 <= Max drawdown
 组合波动 <= Max stdev
 组合 beta <= Max beta</code>
           </div>
           <div class="method-item">
-            <strong>2. 产品评分</strong>
-            <span>每个维度先根据 PDF 数据生成 0-100 维度评分，再按左侧 0-5 重要性归一化为综合评分；综合评分同时决定历史收益折扣和单品权重上限。</span>
-            <code>产品综合评分 =
-Σ(维度评分 × 用户重要性)
-/ Σ(用户重要性)
-历史收益折扣 = 45% + 55% × 产品综合评分 / 100</code>
+            <strong>2. 参数质量</strong>
+            <span>历史样本长度、低大盘相关性、低集中度风险、数据口径质量四个维度分别评分（0-100），加权平均得到参数质量分。该分数决定收益置信折扣（45%+55%×质量分/100）和单品权重上限。</span>
+            <code>参数质量分 = Σ(维度分 × 重要性) / Σ(重要性)
+收益置信折扣 = 45% + 55% × 参数质量分 / 100
+预期收益 μ = 历史年化 × 收益置信折扣
+单品权重上限 = f(参数质量分, 集中度模式)</code>
           </div>
           <div class="method-item">
-            <strong>3. 候选池</strong>
-            <span>进入组合优化前先构建候选池：硬过滤、策略分层、相似暴露去重，并保留低相关策略的代表产品。</span>
-            <code>候选池 =
-合格产品
-→ 按策略分层取代表产品
-→ 去掉高度相似产品
-→ 保留低相关策略名额</code>
+            <strong>3. 候选池构建</strong>
+            <span>四层过滤：资格过滤（申购状态+数据可用性+最低质量）→ 硬门槛（质量≥45+样本≥1年+口径≥50）→ 策略分层（每策略代表+低相关策略保护+优先级补足）→ 权重兼容（等权模式下剔除 cap 不足的产品）。</span>
+            <code>全池 → 资格过滤 → 硬门槛 → 策略分层 → 相似去重 → 候选池
+策略分层: 每策略代表 → 低相关底线 → 优先级补足
+去重规则: 相关性>0.86 同策略/管理人, 单管理人≤2只</code>
           </div>
           <div class="method-item">
-            <strong>4. 指标计算</strong>
-            <span>当前 PDF 只有年度收益，所以波动、beta 和相关性均为年度 proxy。</span>
-            <code>历史收益 = 年度收益均值
-波动 = 年度收益标准差
-Beta = Cov(产品, benchmark) / Var(benchmark)
-相关性 = Corr(产品, benchmark)</code>
+            <strong>4. 参数估计</strong>
+            <span>Excel 明细优先：收益、波动、回撤、Beta、规模、净值跨度直接来自成立以来指标。PDF 年度数据兜底：年度收益均值/标准差/历史回撤。Beta 和相关性在样本不足时采用贝叶斯混合，引入策略先验。</span>
+            <code>收益/波动/回撤: Excel 明细 > PDF 年度 > 兜底估计
+Beta: Excel β 匹配基准时直接用, 否则年度回归+策略先验混合
+相关性: 日/周频(需≥12点) > 年度收益 > 结构先验
+回撤(组合): max(年度路径回撤, 加权单品回撤×相关性折扣)</code>
           </div>
           <div class="method-item">
-            <strong>5. 当前限制</strong>
-            <span>没有月度净值、持仓行业和 AUM 数据；集中度风险、相关性矩阵和容量质量仍是 proxy。</span>
-            <code>集中度 = 策略分类 + 标签 proxy
-相关性矩阵 = 年度收益 + 策略关系
-AUM / 容量 = 当前未接入</code>
+            <strong>5. 组合优化</strong>
+            <span>等权模式：固定 K 只基金，每只 1/K，精确枚举 C(N,K) 个组合后约束过滤。质量倾斜模式：五个确定性起点 + 2400 次固定种子随机搜索，权重有质量偏向并受单品上限和策略上限约束。</span>
+            <code>等权: K 只基金 → 枚举 C(N,K) → 四约束过滤 → 效用最优
+倾斜: 候选池 → 多起点搜索 → 权重修正 → 效用最优
+
+效用分 = μ×1.7 + 质量×0.22 - σ×0.75 - DD×0.65 - β超限惩罚</code>
+          </div>
+          <div class="method-item">
+            <strong>6. 结果解释</strong>
+            <span>始终展示三类组合：效用最优（主推荐，平衡收益/风险/质量）、最低风险（σ+DD 最小，保守方案）、收益上沿（μ 最大，激进方案）。无可分解时展示最接近目标的近似解。点击任意组合卡片查看完整推导详情。</span>
+            <code>┌─ 效用最优: U 最大 — 主推荐
+├─ 最低风险: σ + DD 最小 — 保守边界
+└─ 收益上沿: μ 最大 — 激进边界
+
+固定种子 = 20260618 → 同参数同结果, 可复现可审计</code>
           </div>
         </div>
       </section>
@@ -1137,10 +1312,11 @@ AUM / 容量 = 当前未接入</code>
               <option value="paused">仅暂停申购</option>
             </select>
             <select id="sortSelect">
-              <option value="score">综合分最高</option>
-              <option value="adjReturn">调整后收益最高</option>
+              <option value="score">参数质量最高</option>
+              <option value="adjReturn">预期收益最高</option>
+              <option value="scale">规模最大</option>
               <option value="risk">风险最低</option>
-              <option value="history">年度样本最多</option>
+              <option value="history">样本长度最多</option>
               <option value="beta">Beta 最低</option>
               <option value="market">相关性最低</option>
               <option value="concentration">集中度风险最低</option>
@@ -1148,9 +1324,9 @@ AUM / 容量 = 当前未接入</code>
           </div>
           <div class="control-row">
             <span class="pill"><i data-lucide="filter" class="icon"></i>当前列表 <strong id="visibleCount">0</strong> 只</span>
-            <span class="pill"><i data-lucide="target" class="icon"></i>调整后收益 = 历史收益 × 历史收益折扣</span>
-            <span class="pill"><i data-lucide="crosshair" class="icon"></i>Beta / 相关性相对当前 benchmark</span>
-            <span class="pill"><i data-lucide="activity" class="icon"></i>波动 = 年度收益离散度 proxy</span>
+            <span class="pill"><i data-lucide="target" class="icon"></i>预期收益 μ = 历史年化 × 收益置信折扣</span>
+            <span class="pill"><i data-lucide="target" class="icon"></i>Beta / 相关性相对当前 benchmark</span>
+            <span class="pill"><i data-lucide="activity" class="icon"></i>波动 = Excel 风险指标 / PDF 年度估计</span>
           </div>
         </div>
         <div class="table-wrap">
@@ -1159,16 +1335,17 @@ AUM / 容量 = 当前未接入</code>
               <tr>
                 <th>产品</th>
                 <th>策略</th>
-                <th>综合分</th>
-                <th>历史收益折扣</th>
-                <th>调整后收益</th>
-                <th>历史收益</th>
-                <th>波动 proxy</th>
+                <th>规模</th>
+                <th>参数质量</th>
+                <th>收益置信折扣</th>
+                <th>预期收益 μ</th>
+                <th>历史年化</th>
+                <th>波动</th>
                 <th>历史回撤</th>
                 <th>Beta</th>
                 <th>相关性</th>
-                <th>集中度风险 proxy</th>
-                <th>可用年度样本</th>
+                <th>集中度风险估计</th>
+                <th>样本长度</th>
                 <th>口径</th>
                 <th>解释</th>
               </tr>
@@ -1194,7 +1371,12 @@ AUM / 容量 = 当前未接入</code>
   </div>
 
   <script>
-    const source = window.CHINA50_FUND_POOL || { metadata: {}, records: [] };
+    const dashboardData = window.DASHBOARD_DATA || { basePool: { metadata: {}, records: [] }, recommendedTargets: { metadata: {}, targets: [] } };
+    const source = dashboardData.basePool || { metadata: {}, records: [] };
+    const detailSource = dashboardData.recommendedTargets || { metadata: {}, targets: [] };
+    const highConfidenceTargets = (detailSource.targets || [])
+      .filter(target => target.match?.confidence === "high" && target.match?.pdf_product_name);
+    const detailByPdfProductName = new Map(highConfidenceTargets.map(target => [target.match.pdf_product_name, target]));
     const reportDate = new Date(`${source.metadata.report_date || "2026-06-18"}T00:00:00`);
     const yearKeys = [
       ["2019", "return_2019_pct"],
@@ -1242,6 +1424,8 @@ AUM / 容量 = 当前未接入</code>
       maxBeta: 0.55,
       betaBenchmark: "中证800指数",
       concentrationMode: "balanced",
+      weightMode: "equal",
+      equalFundCount: 8,
       allowPaused: false,
       section: "全部",
       status: "open",
@@ -1255,6 +1439,31 @@ AUM / 容量 = 当前未接入</code>
       }
     };
     const state = structuredClone(defaultState);
+    const draftState = structuredClone(defaultState);
+    const modelKeys = [
+      "requiredReturn",
+      "maxDrawdown",
+      "maxVol",
+      "maxBeta",
+      "betaBenchmark",
+      "concentrationMode",
+      "weightMode",
+      "equalFundCount",
+      "allowPaused"
+    ];
+    function modelSnapshot(source) {
+      const snapshot = {};
+      modelKeys.forEach(key => { snapshot[key] = source[key]; });
+      snapshot.weights = structuredClone(source.weights);
+      return snapshot;
+    }
+    function hasPendingModelChanges() {
+      return JSON.stringify(modelSnapshot(draftState)) !== JSON.stringify(modelSnapshot(state));
+    }
+    function copyModelValues(from, to) {
+      modelKeys.forEach(key => { to[key] = from[key]; });
+      to.weights = structuredClone(from.weights);
+    }
     const concentrationProfiles = {
       diversified: {
         label: "分散",
@@ -1305,49 +1514,63 @@ AUM / 容量 = 当前未接入</code>
         ]
       }
     };
-    function activeConcentrationProfile() {
-      return concentrationProfiles[state.concentrationMode] || concentrationProfiles.balanced;
+    function activeConcentrationProfile(source = state) {
+      return concentrationProfiles[source.concentrationMode] || concentrationProfiles.balanced;
     }
+    const weightModes = {
+      equal: {
+        label: "等权",
+        help: "个人投资者友好口径。每只基金权重固定为 1/K，把单基金 ops risk 的最大冲击锁定在单只权重内。"
+      },
+      tilted: {
+        label: "质量倾斜",
+        help: "机构式优化口径。权重会随参数质量、收益和风险特征倾斜，同时受单品权重上限约束。"
+      }
+    };
     const weightDefinitions = [
-      { key: "history", label: "历史样本长度", help: "PDF 里 2019-2025 可用年度收益数量。年度样本越多，过往表现的参考基础越充分。" },
-      { key: "market", label: "低大盘相关性", help: "分数越高，越偏好相对当前 Beta benchmark 的低相关、低 beta 产品。0 分代表这个维度不参与评分。" },
-      { key: "concentration", label: "低集中度风险", help: "分数越高，越偏好策略、资产、行业或风格更分散的产品。当前用策略分类和标签估算。" },
-      { key: "data", label: "数据口径质量", help: "[1] 拼接净值扣分，[2] 费后口径加分，字段缺失或样本过少会降低口径分。" }
+      { key: "history", label: "历史样本长度", help: "得分 = min(样本年数, 5) / 5 × 100。Excel 产品看净值跨度，PDF 产品看 2019-2025 可用年度数。5 年满分。" },
+      { key: "market", label: "低大盘相关性", help: "得分 = 100 - 相关性×100 - max(0, β-MaxBeta)×18。切换 benchmark 后自动重算。权重越高越偏向低相关策略。" },
+      { key: "concentration", label: "低集中度风险", help: "基于策略分类和产品标签的代理估计。多策略/CTA/中性产品天然占优。接入持仓后可替换为真实 HHI。" },
+      { key: "data", label: "数据口径质量", help: "基础 74 分，按 Excel 匹配、费后标注、字段完整度、样本多少加减。权重越高越看重数据干净可比。" }
     ];
     const scoringDetails = {
       history: {
         title: "历史样本长度",
-        subtitle: "衡量历史业绩样本是否足够长。",
-        source: "这个指标通过 PDF 里的 2019-2025 各年度收益字段得到。",
-        processing: "可用年度收益年份越多，维度评分越高。这里衡量的是材料给到的历史业绩样本，不代表当前列示产品成立年限。",
-        usage: "左侧重要性越高，产品综合评分越偏向可用年度样本更多的产品；年度样本少的产品即使收益高，调整后收益和权重上限也会更受约束。"
+        subtitle: "评分 = min(可用年数, 5) / 5 × 100。5 年以上满分。",
+        source: "数据来源分两档。高置信匹配的 Excel 产品取净值跨度（起止日期差），精确到年；其余产品统计 PDF 中 2019-2025 七年的年度收益中有值的年份数。",
+        processing: "样本越长，统计推断越可靠，指标分越高。例如 3 年样本得 60 分，5 年及以上满分。Excel 明细的净值跨度会直接反映，短历史产品在这个维度上天然吃亏。",
+        usage: "权重越高，参数质量越倾向历史长的产品。短样本产品即使收益亮眼，其预期收益 μ 也会因参数质量低而被大幅折扣，单品权重上限也受限。"
       },
       market: {
         title: "低大盘相关性",
-        subtitle: "衡量产品相对当前 Beta benchmark 的低相关、低 beta 特征。",
-        source: "这个指标通过产品年度收益和左侧 Beta benchmark 的年度收益得到。样本不足时，会引入策略分类的 beta 先验。",
-        processing: "相对当前 benchmark 的 beta / 相关性越低，维度评分越高。切换 benchmark 后，这个指标会实时重算。",
-        usage: "左侧重要性越高，产品综合评分越偏向市场中性、CTA、债券、多策略等低相关产品；高 beta 产品的收益假设和权重上限会被压低。"
+        subtitle: "评分 = 100 - 相关性×100 - max(0, β-MaxBeta)×18。越低相关、越接近 β 上限得分越高。",
+        source: "数据优先级：Excel 明细有 beta/相关性且 benchmark 匹配时直接使用；否则用产品年度收益 vs 选定 benchmark 年度收益估算。样本不足 3 个共同年度时完全依赖策略先验 beta。",
+        processing: "Beta 和相关性越低，指标分越高。Beta 超过你设定的上限时额外扣分（每超 0.01 扣 0.18）。切换 benchmark 后全量重算。",
+        usage: "权重越高，参数质量越偏向市场中性、CTA、债券等低相关策略；高 Beta 权益产品得分被压低，收益假设和权重上限随之受限。"
       },
       concentration: {
         title: "低集中度风险",
-        subtitle: "衡量产品是否避免单一资产、行业、风格或策略暴露。",
-        source: "这个指标通过 PDF 里的策略分类、策略标签和产品名称得到。当前 PDF 没有持仓行业明细。",
-        processing: "策略、资产、行业、风格越分散，维度评分越高。多策略、全球配置、市场中性、CTA 等标签更占优；单一权益、主题、行业、REITs、转债等会体现为更高集中度 proxy。",
-        usage: "左侧重要性越高，产品综合评分越偏向暴露更分散的产品；集中在单一市场或风格的产品会降低综合评分。"
+        subtitle: "基于策略分类和产品标签的代理估计。评分 = 100 - 集中度代理×100。",
+        source: "当前无持仓穿透数据，完全依赖策略大类（section）和产品名称中的关键词。多策略/全球配置/市场中性/CTA 的代理值较低（≤0.38），单行业/主题/REITs 的代理值较高（≥0.52）。",
+        processing: "策略越分散、资产类别越多，代理值越低，指标分越高。关键词微调：'多策略/复合/全球' -0.14，'行业/主题/医药/消费' +0.12。这是整个模型中最依赖估计的维度。",
+        usage: "权重越高，越排斥集中押注单一市场或风格的产品。但需注意这是代理估计而非真实持仓集中度——接入行业/个券暴露后可直接计算 HHI。"
       },
       data: {
         title: "数据口径质量",
-        subtitle: "衡量净值和业绩数据是否干净、可比。",
-        source: "这个指标通过 PDF 里的 [1][2] 标记、字段完整度、年度样本数量和抽取质量备注得到。",
-        processing: "数据口径越干净、越可比，维度评分越高。[1] 拼接净值会扣分；[2] 费后口径会加分；年度样本少、字段缺失或抽取备注会扣分。",
-        usage: "左侧重要性越高，产品综合评分越偏向口径清晰、数据更可比的产品；拼接净值或字段不足产品会更难拿到高分。"
+        subtitle: "基础 74 分，根据数据源和标注情况加减。满分 100，最低 0。",
+        source: "综合四个信号：Excel 明细匹配状态、PDF [1][2] 标记（[1]=净值拼接 [2]=费后口径）、字段完整度、样本数量和抽取质量备注。",
+        processing: "基础 74 分。加分项：净值无拼接或已有 Excel 明细 +14，Excel 明细匹配 +8，[2] 费后口径 +8，样本 ≥3 年 +4。扣分项：样本 <1 年且 <2 个年度收益 -12，50 底层起始日缺失且无 Excel 明细 -8，抽取质量备注 -6。",
+        usage: "权重越高，越看重数据干净可比的产品。口径模糊的产品（缺字段、有备注、仅 PDF 年度数据）会在此维度上扣分，降低整体参数质量。"
       }
     };
 
     function toNum(value) {
       if (value === null || value === undefined || value === "" || value === "-") return null;
       const n = Number(String(value).replace("%", ""));
+      return Number.isFinite(n) ? n : null;
+    }
+    function finiteNum(value) {
+      const n = Number(value);
       return Number.isFinite(n) ? n : null;
     }
     function clamp(value, min, max) { return Math.max(min, Math.min(max, value)); }
@@ -1364,6 +1587,23 @@ AUM / 容量 = 当前未接入</code>
     function fmtNum(value, digits = 2) {
       if (value === null || value === undefined || Number.isNaN(value)) return "-";
       return value.toFixed(digits);
+    }
+    function fmtCount(value) {
+      if (!Number.isFinite(value)) return "-";
+      if (value >= 1e8) return `${(value / 1e8).toFixed(1)}亿`;
+      if (value >= 1e4) return `${(value / 1e4).toFixed(1)}万`;
+      return Math.round(value).toLocaleString("zh-CN");
+    }
+    function combinationCount(n, k) {
+      if (k < 0 || k > n) return 0;
+      let result = 1;
+      for (let i = 1; i <= k; i++) result = result * (n - k + i) / i;
+      return Math.round(result);
+    }
+    function fmtScale(value) {
+      if (value === null || value === undefined || Number.isNaN(value)) return "-";
+      if (value >= 10000) return `${(value / 10000).toFixed(1)}亿`;
+      return `${Math.round(value).toLocaleString("zh-CN")}万`;
     }
     function yearsBetween(start) {
       if (!start || start === "-") return 0;
@@ -1426,6 +1666,26 @@ AUM / 容量 = 当前未接入</code>
       if (!denA || !denB) return null;
       return clamp(num / (denA * denB), -0.6, 0.98);
     }
+    function sameBenchmarkName(a, b) {
+      const clean = value => String(value || "").replace(/指数|基准|\s/g, "");
+      const left = clean(a);
+      const right = clean(b);
+      return !!left && !!right && (left === right || left.includes(right) || right.includes(left));
+    }
+    function detailForRecord(record) {
+      return detailByPdfProductName.get(record.product_name) || null;
+    }
+    function detailSummaryValue(detail, key) {
+      return finiteNum(detail?.summary?.[key]);
+    }
+    function buildReturnMap(periodicReturns) {
+      const map = new Map();
+      (periodicReturns || []).forEach(row => {
+        const value = finiteNum(row.return_pct);
+        if (row.date && value !== null) map.set(row.date, value);
+      });
+      return map;
+    }
     const marketBenchmarks = source.records
       .filter(r => r.row_type === "index_or_benchmark")
       .map(r => ({ name: r.product_name || r.manager_fund_manager_strategy_label || "", years: annualMap(r) }))
@@ -1434,6 +1694,7 @@ AUM / 容量 = 当前未接入</code>
     if (!benchmarkMap.has(defaultState.betaBenchmark) && marketBenchmarks.length) {
       defaultState.betaBenchmark = marketBenchmarks[0].name;
       state.betaBenchmark = marketBenchmarks[0].name;
+      draftState.betaBenchmark = marketBenchmarks[0].name;
     }
     function selectedBenchmark() {
       return benchmarkMap.get(state.betaBenchmark) || marketBenchmarks[0] || null;
@@ -1446,6 +1707,17 @@ AUM / 容量 = 当前未接入</code>
           marketCorr: clamp(strategyBeta * 0.92 + 0.04, 0.02, 0.98),
           betaSampleYears: 0
         };
+      }
+      if (record.hasDetailData && sameBenchmarkName(record.detailBenchmarkName, benchmark.name)) {
+        const detailBeta = finiteNum(record.detailBetaInception);
+        const detailCorr = finiteNum(record.detailBenchmarkCorr);
+        if (detailBeta !== null || detailCorr !== null) {
+          return {
+            beta: clamp(detailBeta ?? strategyBeta, 0, 1.60),
+            marketCorr: clamp(Math.max(0, detailCorr ?? (strategyBeta * 0.92 + 0.04)), 0, 0.98),
+            betaSampleYears: Math.max(1, record.detailNavYears || 0)
+          };
+        }
       }
       const years = annualMap(record);
       const common = Object.keys(years).filter(year => benchmark.years[year] !== undefined);
@@ -1513,28 +1785,53 @@ AUM / 容量 = 当前未接入</code>
       return source.records
         .filter(r => r.row_type === "product" && r.product_name && r.product_name !== "-")
         .map((r, index) => {
+          const detail = detailForRecord(r);
+          const detailReturn = detailSummaryValue(detail, "annual_return_inception_pct");
+          const detailVol = detailSummaryValue(detail, "annual_vol_inception_pct");
+          const detailDd = detailSummaryValue(detail, "max_drawdown_inception_abs_pct");
+          const detailScaleWan = detailSummaryValue(detail, "latest_scale_wan");
+          const detailNavYears = detailSummaryValue(detail, "nav_years") ?? 0;
+          const detailPeriodicReturns = detail?.series?.periodic_returns || [];
           const annual = annualReturns(r).map(x => x.value);
-          const rawReturn = annual.length ? mean(annual) : (toNum(r.return_ytd_pct) ?? 0);
+          const rawReturn = detailReturn ?? (annual.length ? mean(annual) : (toNum(r.return_ytd_pct) ?? 0));
           const dd1y = Math.abs(toNum(r.max_drawdown_1y_pct) ?? 0);
-          const histDd = Math.abs(toNum(r.max_drawdown_hist_pct) ?? dd1y);
+          const histDd = detailDd ?? Math.abs(toNum(r.max_drawdown_hist_pct) ?? dd1y);
           const age = yearsBetween(r.fifty_underlying_start_date);
           const historyYears = annual.length;
-          const vol = stdev(annual) ?? Math.max(4, Math.min(45, histDd * 0.45 || dd1y * 0.8 || 10));
+          const vol = detailVol ?? stdev(annual) ?? Math.max(4, Math.min(45, histDd * 0.45 || dd1y * 0.8 || 10));
           const strategyBeta = betaProxy(r);
           const concentrationRisk = concentrationRiskProxy(r);
-          const sharpe = toNum(r.sharpe_1y);
+          const sharpe = detailSummaryValue(detail, "sharpe_inception") ?? toNum(r.sharpe_1y);
+          const historyEvidenceYears = detail ? detailNavYears : annual.length;
           return {
             ...r,
             id: index,
+            detail,
+            hasDetailData: !!detail,
+            detailProductName: detail?.product_name || "",
+            detailProductCode: detail?.product_code || "",
+            detailScaleWan,
+            detailScaleDate: detail?.summary?.latest_scale_date || null,
+            detailNavYears,
+            detailNavStart: detail?.summary?.nav_start_date || null,
+            detailNavEnd: detail?.summary?.nav_end_date || null,
+            detailBenchmarkName: detail?.summary?.benchmark_name || "",
+            detailBetaInception: detailSummaryValue(detail, "beta_inception"),
+            detailBenchmarkCorr: detailSummaryValue(detail, "benchmark_correlation"),
+            detailReturnMap: buildReturnMap(detailPeriodicReturns),
             annual,
             rawReturn,
+            rawReturnSource: detailReturn !== null ? "recommended_excel" : "pdf_annual",
             dd1y,
             histDd,
+            histDdSource: detailDd !== null ? "recommended_excel" : "pdf_annual",
             age,
             historyYears,
             trackingYears: age,
             annualCount: annual.length,
+            historyEvidenceYears,
             vol,
+            volSource: detailVol !== null ? "recommended_excel" : "pdf_annual",
             strategyBeta,
             beta: strategyBeta,
             marketCorr: clamp(strategyBeta * 0.92 + 0.04, 0.02, 0.98),
@@ -1551,16 +1848,18 @@ AUM / 容量 = 当前未接入</code>
       const betaStats = betaAgainstBenchmark(fund, fund.strategyBeta);
       const beta = betaStats.beta;
       const marketCorr = betaStats.marketCorr;
-      const history = clamp((Math.min(fund.annualCount, 5) / 5) * 100, 0, 100);
+      const historyYearsForScore = fund.hasDetailData ? fund.historyEvidenceYears : fund.annualCount;
+      const history = clamp((Math.min(historyYearsForScore, 5) / 5) * 100, 0, 100);
       const market = clamp(100 - marketCorr * 100 - Math.max(0, beta - state.maxBeta) * 18, 0, 100);
       const concentration = clamp(100 - fund.concentrationRisk * 100, 0, 100);
 
       let data = 74;
-      if (!fund.is_nav_stitched) data += 14;
+      if (!fund.is_nav_stitched || fund.hasDetailData) data += 14;
       if (fund.is_fee_deducted) data += 8;
-      if (fund.annualCount >= 3) data += 4;
-      if (fund.annualCount < 2) data -= 12;
-      if (!fund.fifty_underlying_start_date || fund.fifty_underlying_start_date === "-") data -= 8;
+      if (fund.hasDetailData) data += 8;
+      if (historyYearsForScore >= 3 || fund.annualCount >= 3) data += 4;
+      if (historyYearsForScore < 1 && fund.annualCount < 2) data -= 12;
+      if ((!fund.fifty_underlying_start_date || fund.fifty_underlying_start_date === "-") && !fund.hasDetailData) data -= 8;
       if (fund.extraction_quality_notes) data -= 6;
       data = clamp(data, 0, 100);
 
@@ -1623,7 +1922,34 @@ AUM / 容量 = 当前未接入</code>
           ["市场中性", "管理期货", "债券主动投资", "债券主动投资-全球配置工具"].includes(b.section)) return 0.16;
       return 0.28;
     }
+    const detailCorrCache = new Map();
+    function detailCorrelation(a, b) {
+      if (!a.hasDetailData || !b.hasDetailData || !a.detailReturnMap?.size || !b.detailReturnMap?.size) return null;
+      const key = a.id < b.id ? `${a.id}:${b.id}` : `${b.id}:${a.id}`;
+      if (detailCorrCache.has(key)) return detailCorrCache.get(key);
+      const smaller = a.detailReturnMap.size <= b.detailReturnMap.size ? a.detailReturnMap : b.detailReturnMap;
+      const larger = smaller === a.detailReturnMap ? b.detailReturnMap : a.detailReturnMap;
+      const left = [];
+      const right = [];
+      smaller.forEach((value, date) => {
+        if (!larger.has(date)) return;
+        if (smaller === a.detailReturnMap) {
+          left.push(value);
+          right.push(larger.get(date));
+        } else {
+          left.push(larger.get(date));
+          right.push(value);
+        }
+      });
+      const value = left.length >= 12 ? simpleCorr(left, right) : null;
+      detailCorrCache.set(key, value);
+      return value;
+    }
     function correlation(a, b) {
+      const detailCorr = detailCorrelation(a, b);
+      if (detailCorr !== null) {
+        return clamp(detailCorr * 0.70 + corrBase(a, b) * 0.30, -0.2, 0.95);
+      }
       const av = a.vector;
       const bv = b.vector;
       const am = mean(av), bm = mean(bv);
@@ -1634,6 +1960,10 @@ AUM / 容量 = 当前未接入</code>
       return clamp(empirical * 0.55 + corrBase(a, b) * 0.45, -0.2, 0.95);
     }
     let lastCandidatePoolMeta = { count: 0, eligibleCount: 0, target: 0, coreCount: 0 };
+    let lastOptimizationMeta = { mode: "tilted", evaluatedCount: 0, feasibleCount: 0, retainedCount: 0, exhaustive: false };
+    let lastRenderAll = [];
+    let lastRenderPortfolios = [];
+    let lastRenderSelected = [];
     function isDiversifierSection(section) {
       return ["市场中性", "管理期货", "债券主动投资", "债券主动投资-全球配置工具", "多策略", "宏观及商品策略III"].includes(section);
     }
@@ -1698,7 +2028,7 @@ AUM / 容量 = 当前未接入</code>
         return [];
       }
       const target = Math.min(profile.candidateTarget || 40, funds.length);
-      const hard = funds.filter(f => f.scores.total >= 45 && f.annualCount >= 2 && f.scores.data >= 50);
+      const hard = funds.filter(f => f.scores.total >= 45 && (f.historyEvidenceYears >= 1 || f.annualCount >= 2) && f.scores.data >= 50);
       const core = hard.length >= Math.max(profile.minFunds * 3, 15)
         ? hard
         : funds.filter(f => f.scores.total >= 35);
@@ -1752,9 +2082,9 @@ AUM / 容量 = 当前未接入</code>
         }
       });
 
-      ranked.forEach(f => addCandidate(f, "综合优先级补足"));
+      ranked.forEach(f => addCandidate(f, "参数质量优先级补足"));
       if (selected.length < Math.min(target, profile.minFunds * 3)) {
-        ranked.forEach(f => addCandidate(f, "补足候选池", { relaxed: true }));
+        ranked.forEach(f => addCandidate(f, "补足优化资产池", { relaxed: true }));
       }
       selected.sort((a, b) => b.candidatePriority - a.candidatePriority || b.scores.total - a.scores.total || a.id - b.id);
       lastCandidatePoolMeta = {
@@ -1839,9 +2169,198 @@ AUM / 容量 = 当前未接入</code>
       if (beta > state.maxBeta) misses.push("Beta超限");
       return { label, items, weights, ret, beta, vol, dd, productScore, feasible, misses, annual };
     }
-    function makePortfolios(eligible) {
+    function sectionCapPass(items, weights, profile) {
+      const sectionWeights = {};
+      items.forEach((f, i) => { sectionWeights[f.section] = (sectionWeights[f.section] || 0) + weights[i]; });
+      return Math.max(...Object.values(sectionWeights)) <= profile.sectionCap + 0.0001;
+    }
+    function normalizeRawWeights(raw) {
+      const cleaned = raw.map(v => Math.max(0.01, Number.isFinite(v) ? v : 0.01));
+      const total = cleaned.reduce((s, v) => s + v, 0) || 1;
+      return cleaned.map(v => v / total);
+    }
+    function addPortfolioSolution(portfolios, seen, items, rawWeights, label, profile) {
+      if (items.length < profile.minFunds || items.length > profile.maxFunds) return false;
+      const weights = enforceCaps(items, normalizeRawWeights(rawWeights));
+      if (!weights || !sectionCapPass(items, weights, profile)) return false;
+      const portfolio = evaluatePortfolio(items, weights, label);
+      const key = signature(portfolio);
+      if (seen.has(key)) return false;
+      seen.add(key);
+      portfolios.push(portfolio);
+      return true;
+    }
+    function takeScenarioItems(sorted, k) {
+      const selected = [];
+      const sectionCounts = new Map();
+      const managerCounts = new Map();
+      const sectionLimit = Math.max(1, Math.ceil(k * 0.45));
+      const managerLimit = k <= 6 ? 1 : 2;
+      for (const fund of sorted) {
+        if (selected.length >= k) break;
+        const manager = fund.manager_name_guess || fund.manager_fund_manager_strategy_label || "unknown";
+        if ((sectionCounts.get(fund.section) || 0) >= sectionLimit) continue;
+        if ((managerCounts.get(manager) || 0) >= managerLimit) continue;
+        selected.push(fund);
+        sectionCounts.set(fund.section, (sectionCounts.get(fund.section) || 0) + 1);
+        managerCounts.set(manager, (managerCounts.get(manager) || 0) + 1);
+      }
+      if (selected.length < k) {
+        for (const fund of sorted) {
+          if (selected.length >= k) break;
+          if (!selected.some(item => item.id === fund.id)) selected.push(fund);
+        }
+      }
+      return selected;
+    }
+    function addDeterministicStarts(pool, profile, portfolios, seen) {
+      const scenarios = [
+        {
+          label: "质量起点",
+          compare: (a, b) => b.scores.total - a.scores.total || b.adjReturn - a.adjReturn,
+          raw: f => 0.45 + f.scores.total / 100 + clamp(f.adjReturn, -20, 45) / 90
+        },
+        {
+          label: "收益起点",
+          compare: (a, b) => b.adjReturn - a.adjReturn || b.scores.total - a.scores.total,
+          raw: f => 0.45 + Math.max(0, f.adjReturn) / 35 + f.scores.total / 180
+        },
+        {
+          label: "低风险起点",
+          compare: (a, b) => (a.vol + a.histDd + a.beta * 4) - (b.vol + b.histDd + b.beta * 4),
+          raw: f => 0.45 + 35 / Math.max(8, f.vol + f.histDd) + (100 - f.concentrationRisk * 100) / 220
+        },
+        {
+          label: "低beta起点",
+          compare: (a, b) => (a.beta + a.marketCorr) - (b.beta + b.marketCorr) || b.scores.total - a.scores.total,
+          raw: f => 0.45 + clamp(1.25 - f.beta, 0, 1.25) + clamp(1 - f.marketCorr, 0, 1)
+        },
+        {
+          label: "低集中度起点",
+          compare: (a, b) => a.concentrationRisk - b.concentrationRisk || b.scores.total - a.scores.total,
+          raw: f => 0.45 + (100 - f.concentrationRisk * 100) / 95 + f.scores.data / 180
+        }
+      ];
+      scenarios.forEach(scenario => {
+        const sorted = [...pool].sort((a, b) => scenario.compare(a, b) || a.id - b.id);
+        for (let k = profile.minFunds; k <= Math.min(profile.maxFunds, sorted.length); k++) {
+          const items = takeScenarioItems(sorted, k);
+          addPortfolioSolution(portfolios, seen, items, items.map(() => 1), `${scenario.label}-等权`, profile);
+          addPortfolioSolution(portfolios, seen, items, items.map(scenario.raw), `${scenario.label}-倾斜`, profile);
+        }
+      });
+    }
+    function exhaustivePoolTarget(k) {
+      if (k <= 5) return 28;
+      if (k === 6) return 26;
+      if (k === 7) return 24;
+      return 22;
+    }
+    function updateBestPortfolio(slot, portfolio, compare) {
+      return !slot || compare(portfolio, slot) < 0 ? portfolio : slot;
+    }
+    function addRetainedPortfolio(retained, seen, portfolio) {
+      if (!portfolio) return;
+      const key = signature(portfolio);
+      if (seen.has(key)) return;
+      seen.add(key);
+      retained.push(portfolio);
+    }
+    function makeEqualWeightPortfolios(eligible) {
       if (!eligible.length) {
         lastCandidatePoolMeta = { count: 0, eligibleCount: 0, target: 0, coreCount: 0, sectionCount: 0 };
+        lastOptimizationMeta = { mode: "equal", evaluatedCount: 0, generatedCount: 0, feasibleCount: 0, retainedCount: 0, exhaustive: true, fundCount: state.equalFundCount };
+        return [];
+      }
+      const baseProfile = activeConcentrationProfile();
+      const k = clamp(Math.round(state.equalFundCount), 5, 8);
+      const exactTarget = exhaustivePoolTarget(k);
+      const profile = { ...baseProfile, minFunds: k, maxFunds: k, candidateTarget: exactTarget };
+      const { bySection, global } = sectionYearAverages(eligible);
+      const rawPool = buildCandidatePool(
+        eligible.map(f => ({ ...f, vector: fullVector(f, bySection, global) })),
+        profile
+      );
+      const equalWeight = 1 / k;
+      const pool = rawPool.filter(f => f.cap + 0.0001 >= equalWeight);
+      lastCandidatePoolMeta = {
+        ...lastCandidatePoolMeta,
+        count: pool.length,
+        target: exactTarget,
+        sectionCount: new Set(pool.map(f => f.section)).size
+      };
+      if (pool.length < k) {
+        lastOptimizationMeta = { mode: "equal", evaluatedCount: 0, generatedCount: 0, feasibleCount: 0, retainedCount: 0, exhaustive: true, fundCount: k, poolCount: pool.length };
+        return [];
+      }
+
+      const totalCombos = combinationCount(pool.length, k);
+      const sampleStride = Math.max(1, Math.ceil(totalCombos / 4200));
+      const weights = Array(k).fill(equalWeight);
+      const retained = [];
+      const retainedSeen = new Set();
+      let generatedCount = 0;
+      let evaluatedCount = 0;
+      let feasibleCount = 0;
+      let bestFeasibleUtility = null;
+      let bestFeasibleLowRisk = null;
+      let bestFeasibleReturn = null;
+      let bestAllUtility = null;
+      let bestAllLowRisk = null;
+      let bestAllReturn = null;
+      const combo = [];
+
+      const consider = () => {
+        generatedCount += 1;
+        const items = combo.slice();
+        if (!sectionCapPass(items, weights, profile)) return;
+        evaluatedCount += 1;
+        const portfolio = evaluatePortfolio(items, weights, "等权遍历解");
+        const byUtilityDesc = (a, b) => portfolioUtility(b) - portfolioUtility(a);
+        const byRiskAsc = (a, b) => (a.vol + a.dd) - (b.vol + b.dd);
+        const byReturnDesc = (a, b) => b.ret - a.ret;
+        bestAllUtility = updateBestPortfolio(bestAllUtility, portfolio, byUtilityDesc);
+        bestAllLowRisk = updateBestPortfolio(bestAllLowRisk, portfolio, byRiskAsc);
+        bestAllReturn = updateBestPortfolio(bestAllReturn, portfolio, byReturnDesc);
+        if (portfolio.feasible) {
+          feasibleCount += 1;
+          bestFeasibleUtility = updateBestPortfolio(bestFeasibleUtility, portfolio, byUtilityDesc);
+          bestFeasibleLowRisk = updateBestPortfolio(bestFeasibleLowRisk, portfolio, byRiskAsc);
+          bestFeasibleReturn = updateBestPortfolio(bestFeasibleReturn, portfolio, byReturnDesc);
+        }
+        if (generatedCount % sampleStride === 0) addRetainedPortfolio(retained, retainedSeen, portfolio);
+      };
+      const walk = (start, depth) => {
+        if (depth === k) {
+          consider();
+          return;
+        }
+        const remaining = k - depth;
+        for (let i = start; i <= pool.length - remaining; i++) {
+          combo[depth] = pool[i];
+          walk(i + 1, depth + 1);
+        }
+      };
+      walk(0, 0);
+      [bestFeasibleUtility, bestFeasibleLowRisk, bestFeasibleReturn, bestAllUtility, bestAllLowRisk, bestAllReturn]
+        .forEach(portfolio => addRetainedPortfolio(retained, retainedSeen, portfolio));
+      lastOptimizationMeta = {
+        mode: "equal",
+        evaluatedCount,
+        generatedCount,
+        feasibleCount,
+        retainedCount: retained.length,
+        exhaustive: true,
+        fundCount: k,
+        poolCount: pool.length,
+        totalCombos
+      };
+      return retained;
+    }
+    function makeTiltedPortfolios(eligible) {
+      if (!eligible.length) {
+        lastCandidatePoolMeta = { count: 0, eligibleCount: 0, target: 0, coreCount: 0, sectionCount: 0 };
+        lastOptimizationMeta = { mode: "tilted", evaluatedCount: 0, generatedCount: 0, feasibleCount: 0, retainedCount: 0, exhaustive: false };
         return [];
       }
       const profile = activeConcentrationProfile();
@@ -1851,14 +2370,14 @@ AUM / 容量 = 当前未接入</code>
         profile
       );
       const portfolios = [];
+      const seen = new Set();
+      addDeterministicStarts(pool, profile, portfolios, seen);
       const rng = seededRandom(20260618);
       const topCount = Math.min(profile.maxFunds, pool.length);
       if (topCount >= profile.minFunds) {
         const items = pool.slice(0, topCount);
         const raw = items.map(f => Math.max(0.1, f.scores.total / 100));
-        const total = raw.reduce((s,v)=>s+v,0);
-        const weights = enforceCaps(items, raw.map(v => v / total));
-        if (weights) portfolios.push(evaluatePortfolio(items, weights, "高分产品优先"));
+        addPortfolioSolution(portfolios, seen, items, raw, "高分产品优先", profile);
       }
       for (let n = 0; n < 2400; n++) {
         const width = Math.max(1, profile.maxFunds - profile.minFunds + 1);
@@ -1872,31 +2391,44 @@ AUM / 容量 = 当前未接入</code>
         }
         if (selected.length < profile.minFunds) continue;
         const raw = selected.map(f => (0.15 + rng() ** 1.4) * (0.55 + f.scores.total / 100));
-        const total = raw.reduce((s,v)=>s+v,0);
-        const weights = enforceCaps(selected, raw.map(v => v / total));
-        if (!weights) continue;
-        const sectionWeights = {};
-        selected.forEach((f, i) => { sectionWeights[f.section] = (sectionWeights[f.section] || 0) + weights[i]; });
-        if (Math.max(...Object.values(sectionWeights)) > profile.sectionCap) continue;
-        portfolios.push(evaluatePortfolio(selected, weights, "模拟组合"));
+        addPortfolioSolution(portfolios, seen, selected, raw, "搜索生成解", profile);
       }
+      lastOptimizationMeta = {
+        mode: "tilted",
+        evaluatedCount: portfolios.length,
+        generatedCount: portfolios.length,
+        feasibleCount: portfolios.filter(p => p.feasible).length,
+        retainedCount: portfolios.length,
+        exhaustive: false,
+        fundCount: null,
+        poolCount: pool.length
+      };
       return portfolios;
+    }
+    function makePortfolios(eligible) {
+      return state.weightMode === "equal" ? makeEqualWeightPortfolios(eligible) : makeTiltedPortfolios(eligible);
+    }
+    function portfolioUtility(portfolio) {
+      return portfolio.ret * 1.7 +
+        portfolio.productScore * 0.22 -
+        portfolio.vol * 0.75 -
+        portfolio.dd * 0.65 -
+        Math.max(0, portfolio.beta - state.maxBeta) * 80;
     }
     function choosePortfolios(portfolios) {
       if (!portfolios.length) return [];
       const feasible = portfolios.filter(p => p.feasible);
       const base = feasible.length ? feasible : portfolios;
       const balanced = [...base].sort((a, b) => {
-        const as = a.ret * 1.7 + a.productScore * 0.22 - a.vol * 0.75 - a.dd * 0.65 - Math.max(0, a.beta - state.maxBeta) * 80;
-        const bs = b.ret * 1.7 + b.productScore * 0.22 - b.vol * 0.75 - b.dd * 0.65 - Math.max(0, b.beta - state.maxBeta) * 80;
-        return bs - as;
+        return portfolioUtility(b) - portfolioUtility(a);
       })[0];
       const lowRisk = [...base].sort((a, b) => (a.vol + a.dd) - (b.vol + b.dd))[0];
       const maxReturn = [...base].sort((a, b) => b.ret - a.ret)[0];
+      const suffix = state.weightMode === "equal" ? "等权组合" : "组合";
       return [
-        { ...balanced, label: feasible.length ? "目标适配组合" : "最接近目标组合", selected: true },
-        { ...lowRisk, label: "低风险组合" },
-        { ...maxReturn, label: "收益进取组合" }
+        { ...balanced, label: feasible.length ? `效用最优${suffix}` : `最接近目标${suffix}`, selected: true },
+        { ...lowRisk, label: `最低风险${suffix}` },
+        { ...maxReturn, label: `收益上沿${suffix}` }
       ].filter((p, i, arr) => arr.findIndex(x => signature(x) === signature(p)) === i);
     }
     function signature(p) {
@@ -1914,8 +2446,9 @@ AUM / 容量 = 当前未接入</code>
       const sorters = {
         score: (a, b) => b.scores.total - a.scores.total,
         adjReturn: (a, b) => b.adjReturn - a.adjReturn,
+        scale: (a, b) => (b.detailScaleWan || 0) - (a.detailScaleWan || 0),
         risk: (a, b) => (a.vol + a.histDd) - (b.vol + b.histDd),
-        history: (a, b) => b.annualCount - a.annualCount,
+        history: (a, b) => (b.historyEvidenceYears || b.annualCount) - (a.historyEvidenceYears || a.annualCount),
         beta: (a, b) => a.beta - b.beta,
         market: (a, b) => a.marketCorr - b.marketCorr,
         concentration: (a, b) => a.concentrationRisk - b.concentrationRisk
@@ -1925,11 +2458,12 @@ AUM / 容量 = 当前未接入</code>
     function fundReasons(f) {
       const good = [];
       const bad = [];
-      if (f.scores.total >= 75) good.push("综合分高");
+      if (f.scores.total >= 75) good.push("参数质量高");
       if (f.adjReturn >= state.requiredReturn) good.push("收益达标");
       if (f.histDd <= state.maxDrawdown) good.push("回撤适配");
       if (f.beta <= state.maxBeta) good.push("beta适配");
-      if (f.annualCount >= 4) good.push("年度样本较多");
+      if (f.hasDetailData) good.push("明细数据已接入");
+      if (f.historyEvidenceYears >= 4 || f.annualCount >= 4) good.push("样本较多");
       if (f.marketCorr <= 0.35) good.push("大盘相关低");
       if (f.concentrationRisk <= 0.40) good.push("集中度低");
       if (f.scores.data >= 85) good.push("口径较好");
@@ -1940,7 +2474,7 @@ AUM / 容量 = 当前未接入</code>
       if (f.beta > state.maxBeta) bad.push("beta偏高");
       if (f.marketCorr > 0.70) bad.push("大盘相关高");
       if (f.concentrationRisk > 0.65) bad.push("集中度偏高");
-      if (f.annualCount < 1) bad.push("年度样本较少");
+      if (f.historyEvidenceYears < 1 && f.annualCount < 1) bad.push("样本较少");
       return { good, bad };
     }
     function openDetail(key) {
@@ -1952,27 +2486,223 @@ AUM / 容量 = 当前未接入</code>
       document.getElementById("detailBody").innerHTML = `
         <div class="detail-block"><strong>这个指标怎么得到</strong><p>${detail.source}</p></div>
         <div class="detail-block"><strong>指标方向</strong><p>${detail.processing}</p></div>
-        <div class="detail-block"><strong>怎么影响推荐</strong><p>${detail.usage}</p></div>
+        <div class="detail-block"><strong>怎么影响组合优化</strong><p>${detail.usage}</p></div>
       `;
       document.getElementById("detailModal").hidden = false;
     }
     function openDrawdownProxyDetail() {
       document.querySelector(".detail-card").classList.remove("wide");
-      document.getElementById("detailTitle").textContent = "Max drawdown / 回撤 proxy";
-      document.getElementById("detailSubtitle").textContent = "左侧组合目标中的最大回撤预算使用这个估算口径。";
+      document.getElementById("detailTitle").textContent = "组合回撤估计方法";
+      document.getElementById("detailSubtitle").textContent = "当前组合层面使用代理公式。接入高频净值后可替换为真实路径回撤。";
       document.getElementById("detailBody").innerHTML = `
         <div class="detail-block">
-          <strong>为什么叫 proxy</strong>
-          <p>当前 PDF 只有年度收益和单产品历史最大回撤，没有月度、周度或日度净值，所以这里展示的是估算口径，用来做初筛和组合之间的相对比较。</p>
+          <strong>为什么是估计口径</strong>
+          <p>理想情况下，组合回撤应基于组合自身的净值曲线计算真实的 peak-to-trough 最大跌幅。当前限制在于：约一半产品仅有 PDF 年度收益（无日频净值），无法合成高精度组合净值。因此系统用两种方法交叉验证，取较保守的结果作为风险预算参考。</p>
         </div>
         <div class="detail-block">
-          <strong>怎么估算</strong>
-          <p>先用年度收益拼出组合收益路径算一次回撤；再把单产品历史最大回撤按权重加权，并根据组合相关性给分散化折扣。最终取两者里更保守的一项。</p>
-          <div class="detail-rule">组合回撤 proxy = max(年度收益路径回撤, 单产品历史回撤加权平均 × 相关性折扣)</div>
+          <strong>双重估计方法</strong>
+          <p>方法一：<b>年度收益路径回撤</b>——将组合各年度收益拼接成模拟净值（初始净值=1，逐年乘以 1+Rᵧ/100），计算该路径上的最大 peak-to-trough 跌幅。适合捕捉极端年份的连续下跌。</p>
+          <p>方法二：<b>分散化折扣加权回撤</b>——先计算组合中单产品历史回撤的加权平均，再乘以组合平均相关性决定的折扣系数。相关性越低（组合越分散），折扣越大，回撤估计越小。</p>
+          <div class="detail-rule">组合回撤估计 = max(年度路径回撤, 加权单品DD × (0.38 + 0.32 × √平均相关性))
+→ 平均相关性 = 0 时折扣 = 38%（最大分散化），= 1 时折扣 = 70%
+→ 如果两个方法结果差异大，取更保守（更大）的那个</div>
         </div>
         <div class="detail-block">
           <strong>怎么看这个数</strong>
-          <p>这个数适合判断当前推荐组合的风险大概位置。拿到月度或周度净值后，可以直接生成组合净值曲线，再计算真实的 peak-to-trough 最大回撤。</p>
+          <p>这个估计值用于定义组合是否满足 Max drawdown 约束。它偏保守（max 函数 + 相关性折扣下界 38%），实际组合回撤通常不会超过这个估计。建议将其理解为"回撤大概率不超过的值"，而非精确预测。接入月度/周度净值后可生成组合日频收益序列，用真实 peak-to-trough 替代当前代理公式。</p>
+        </div>
+      `;
+      document.getElementById("detailModal").hidden = false;
+    }
+    function openMethodologyGuide() {
+      document.querySelector(".detail-card").classList.add("wide");
+      document.getElementById("detailTitle").textContent = "方法说明：从投资政策到组合推荐";
+      document.getElementById("detailSubtitle").textContent = "完整的数据处理逻辑、参数估计方法和组合生成链路。适用读者：FOF 研究员、投资经理、个人投资者。";
+      document.getElementById("detailBody").innerHTML = `
+        <div class="guide-doc">
+          <p class="guide-lead">这个工作台把子基金选择变成一套可追溯的量化流程。六步链路环环相扣：你在左侧定义的每一个参数，都会逐层影响产品筛选、参数估计和最终组合的形态。下面按数据流方向逐一说明。</p>
+          <div class="guide-toc">
+            <span>数据来源：中国50研选池 PDF 全池 + Excel 推荐标的明细包</span>
+            <span>核心原则：Excel 明细优先，PDF 年度数据补充，所有估计口径明确标注</span>
+            <span>结果特性：固定种子保证同参数同结果，每步决策可点击查看推导详情</span>
+          </div>
+
+          <section class="guide-section">
+            <h4>1. 投资政策：定义组合的四个硬约束</h4>
+            <p>投资政策相当于组合的"体检标准"。一个组合必须同时满足以下四个条件才能进入可行集合：</p>
+            <div class="guide-kpi-grid">
+              <div><strong>Required return（预期收益下限）</strong><span>组合 μ 低于该值时判定为"收益不足"。建议设在 6%-12% 区间，过高会导致可行解急剧减少。</span></div>
+              <div><strong>Max drawdown（最大回撤预算）</strong><span>组合层面当前使用估计口径（详见下方第 4 节）。高置信 Excel 明细提供精确单品回撤，未匹配产品使用 PDF 估计值。</span></div>
+              <div><strong>Max standard deviation（波动上限）</strong><span>组合 σ = √(wᵀ·Σ·w)，其中 Σ 由单品波动率和两两相关性构成。高波动上限允许更多权益仓位。</span></div>
+              <div><strong>Beta benchmark + Max beta</strong><span>所有产品的 beta 和相关性都相对你选择的基准计算。切换基准后，参数质量分和最优组合会实时重算。</span></div>
+              <div><strong>组合敞口集中度</strong><span>控制三件事：组合基金数量范围、单品权重上限（按参数质量分阶梯设定）、单一策略大类总权重上限（45%/55%/65%）。</span></div>
+              <div><strong>组合权重方式</strong><span>等权模式：每只基金固定 1/K，精确枚举；质量倾斜模式：权重随参数质量和收益风险特征变化，多起点搜索。</span></div>
+            </div>
+          </section>
+
+          <section class="guide-section">
+            <h4>2. 参数质量评估：四个维度 → 收益置信折扣</h4>
+            <p>这是整个工作台的核心机制。每只产品在四个维度上独立评分（0-100），然后按你在左侧设定的重要性加权求和，得到参数质量分。这个分数直接决定两件事：<strong>历史收益的保留比例</strong>和<strong>单品权重上限</strong>。</p>
+            <div class="guide-kpi-grid">
+              <div><strong>历史样本长度（默认权重 4）</strong><span>评分 = min(样本年数, 5) / 5 × 100。Excel 产品看净值跨度，PDF 产品看 2019-2025 可用年度收益数量。5 年以上满分。</span></div>
+              <div><strong>低大盘相关性（默认权重 4）</strong><span>评分 = 100 - 相关性×100 - max(0, β - MaxBeta)×18。beta 越接近上限、相关性越高，得分越低。切换 benchmark 后自动重算。</span></div>
+              <div><strong>低集中度风险（默认权重 4）</strong><span>评分 = 100 - 集中度代理×100。当前基于策略分类和产品标签估算，无持仓穿透。多策略/CTA/市场中性天然占优，单行业/REITs/主题型偏高。</span></div>
+              <div><strong>数据口径质量（默认权重 3）</strong><span>基础 74 分。加分项：净值无拼接 +14，Excel 明细 +8，[2] 费后口径 +8，样本≥3年 +4。扣分项：样本不足 -12，底层起始日缺失 -8，抽取备注 -6。</span></div>
+            </div>
+            <code class="guide-code">参数质量分 = (历史分×W₁ + 大盘分×W₂ + 集中度分×W₃ + 口径分×W₄) / (W₁+W₂+W₃+W₄)
+
+收益置信折扣 = 45% + 55% × 参数质量分 / 100
+  → 质量 100 分：保留 100% 历史收益
+  → 质量 50 分：保留 72.5% 历史收益
+  → 质量 0 分：保留 45% 历史收益（地板）
+
+预期收益 μ = 历史年化 × 收益置信折扣   （负收益不打折，保留原始值）</code>
+            <p class="guide-note">折扣机制的经济含义：参数质量越低，历史业绩在未来复现的可信度越低，因此给历史收益打更大折扣。45% 地板确保即使数据质量最差的产品也保留近一半历史收益作为参考。</p>
+          </section>
+
+          <section class="guide-section">
+            <h4>3. 可投标的池（Candidate Pool）：四层过滤</h4>
+            <p>从全池产品到最终进入优化的资产池，经过层层筛选。每层设计的目的不同：</p>
+            <code class="guide-code">第①层 资格过滤（Eligible）
+  ├─ 申购状态：暂停申购产品默认排除（可手动允许）
+  ├─ 数据可用：adjReturn 和 vol 必须为有限值
+  └─ 最低质量：参数质量分 ≥ 35
+
+第②层 硬门槛（Hard Core）
+  ├─ 参数质量分 ≥ 45
+  ├─ 样本 ≥ 1 年（净值跨度）或 ≥ 2 个年度收益
+  └─ 数据口径分 ≥ 50
+  → 硬核心池 ≥ 15 只时用硬核心，否则降级为第①层全量
+
+第③层 策略分层（Layering）
+  ├─ Round 1：每个策略大类取优先级最高的代表产品
+  ├─ Round 2：保护低相关策略最低数量（市场中性≥2-4只、债券≥2-3只、CTA≥2只、多策略≥2只、宏观≥1只）
+  ├─ Round 3：按优先级补足剩余名额
+  └─ Round 4：放宽集中度限制，补足最小池大小
+  → 同时控制：每策略数量上限、每管理人上限 2 只、高度相似产品去重（相关性>0.86 同策略/同管理人）
+
+第④层 权重兼容（Equal-Weight Mode only）
+  → 等权模式下额外去掉单品 cap 低于 1/K 的产品</code>
+            <p>候选池大小由"组合敞口集中度"控制：分散模式上限 50 只，平衡模式 40 只，适度集中 32 只。风险紧张时自动调高低相关策略配额，收益追求时调高权益策略配额。</p>
+          </section>
+
+          <section class="guide-section">
+            <h4>4. 参数估计：双数据源 + 贝叶斯混合</h4>
+            <p>每个产品的收益和风险参数遵循明确的数据优先级。Excel 明细数据的优先级高于 PDF 年度数据。</p>
+            <div class="guide-kpi-grid">
+              <div><strong>预期收益 μ</strong><span>第 1 优先：Excel 明细成立以来年化。第 2 优先：PDF 年度收益均值。第 3 兜底：YTD 收益。然后 × 收益置信折扣。</span></div>
+              <div><strong>波动率 σ</strong><span>第 1 优先：Excel 明细成立以来年化波动。第 2 优先：PDF 年度收益标准差。第 3 兜底：histDd × 0.45（历史回撤换算）。</span></div>
+              <div><strong>最大回撤 MDD</strong><span>第 1 优先：Excel 明细成立以来最大回撤。第 2 优先：PDF 历史最大回撤。第 3 兜底：近一年最大回撤。</span></div>
+              <div><strong>产品规模</strong><span>第 1 优先：Excel 明细最新产品规模（万元）。无明细的产品显示为 "-"。</span></div>
+              <div><strong>Beta</strong><span>Excel 明细 beta 直接可用（当明细 benchmark 与当前选择 benchmark 匹配时）。否则用产品年度收益 vs benchmark 年度收益做线性回归。样本不足 3 个共同年度时直接使用策略先验 beta。</span></div>
+              <div><strong>相关性</strong><span>两产品间优先用 Excel 日/周度净值收益率计算（需 ≥12 个共同数据点），结果与策略结构先验 7:3 混合。无明细数据时用年度收益相关性，与结构先验 55:45 混合。</span></div>
+            </div>
+            <code class="guide-code">Beta 贝叶斯混合（样本不足时）：
+  β_blend = β_annual × sampleWeight + β_prior × (1 - sampleWeight)
+  sampleWeight = clamp((共同年数 - 2) / 5, 0.25, 0.80)
+  → 3 个共同年度时数据权重 25%，7 个时权重 80%
+
+策略先验 Beta（基于策略大类的行业经验值）：
+  市场中性 0.08 | CTA 0.06 | 债券 0.18 | 宏观 0.18 | 多策略 0.42
+  全球配置 0.45 | REITs 0.50 | 灵活配置 0.55 | 量化选股 0.74
+  主观选股 0.82 | 主观全球 0.72 | 多空 0.22
+  + 关键词微调：指增/300/500 +0.12，债/固收/ABS -0.20，对冲 -0.18
+
+结构先验相关性（用于年度收益不足时的兜底）：
+  同策略 0.66 | 权益间 0.55 | 低相关策略间 0.16 | 其他 0.28</code>
+            <p class="guide-note">切换 Beta benchmark 会触发全量重算：beta、相关性、参数质量分和最优组合都会更新。例如从"中证800"切到"沪深300"，所有产品的 beta 和相关性都会重新计算。</p>
+
+            <p><strong>组合回撤估计公式：</strong></p>
+            <code class="guide-code">dd = max(年度收益路径回撤, 加权单品回撤 × 相关性折扣)
+相关性折扣 = 0.38 + 0.32 × √max(平均相关性, 0.04)
+  → 平均相关性 0 时折扣 38%（最大分散化），1 时折扣 70%
+  → 年度收益路径回撤：按年度收益路径模拟净值，取最大 peak-to-trough 跌幅
+  → 最终取两者中更保守的值</code>
+            <p class="guide-note">这个估计值用于风险预算约束。拿到月度或周度净值后，可以生成组合真实净值曲线并计算精确的 peak-to-trough 最大回撤，替代当前估计。</p>
+          </section>
+
+          <section class="guide-section">
+            <h4>5. 组合优化（I）：等权模式 — 精确枚举</h4>
+            <p>等权模式面向个人投资者和重视单基金操作风险的场景。每只基金权重固定为 1/K，单只基金出问题对组合的最大冲击被锁定在 1/K 以内。</p>
+            <code class="guide-code">Step 1: 确定 K（5-8 只，手动选择）
+Step 2: 构建可遍历资产池 N（K=8 时目标 22 只）
+Step 3: 剔除单品 cap 低于 1/K 的产品（等权不可行）
+Step 4: 枚举所有 C(N,K) 组合
+Step 5: 逐个计算：μ、σ、回撤估计、β
+Step 6: 四约束过滤 + 策略集中度检查
+Step 7: 效用最优 / 最低风险 / 收益上沿 三类结果</code>
+            <p>例如 K=8 时，每只基金权重 12.5%。从 21 只池中枚举 C(21,8)=203,490 个组合。若池子大于可遍历上限，系统会按优先级压缩到可遍历规模后再枚举。当 C(N,K) > 4200 时会采样展示但最优解来自完整枚举。</p>
+          </section>
+
+          <section class="guide-section">
+            <h4>6. 组合优化（II）：质量倾斜模式 — 多起点搜索</h4>
+            <p>质量倾斜模式保留机构式优化思路。由于离散基金选择（C(N,K) 种组合，N 可达 40）加上连续权重分配，完整枚举不现实，因此采用"确定性起点 + 随机搜索"策略。</p>
+            <code class="guide-code">阶段一：确定性起点（~30 个组合）
+  五个场景从不同投资哲学出发：
+  ① 质量起点：按参数质量分排序，选前 K 只
+  ② 收益起点：按预期收益 μ 排序
+  ③ 低风险起点：按 vol + dd + β×4 排序
+  ④ 低 Beta 起点：按 β + 相关性排序
+  ⑤ 低集中度起点：按集中度风险排序
+  每个场景生成等权和倾斜两种权重方案，覆盖 minFunds 到 maxFunds 所有 K 值
+
+阶段二：高分优先组合（1 个）
+  取池中前 maxFunds 只高分产品，按质量分配权重
+
+阶段三：固定种子随机搜索（2400 次）
+  种子 = 20260618 → 同参数下每次结果完全相同
+  基金选择：idx = floor(rng^1.65 × poolSize) → 偏向高优先级产品
+  权重生成：(0.15 + rng^1.4) × (0.55 + qualityScore/100) → 随机但有质量偏向
+
+每个组合经过三道关卡：
+  ① enforceCaps：单品权重不超过质量分对应的上限
+  ② sectionCapPass：单一策略权重不超过配置上限
+  ③ evaluatePortfolio：计算四约束（收益/波动/回撤/Beta）</code>
+          </section>
+
+          <section class="guide-section">
+            <h4>7. 三类推荐结果与效用函数</h4>
+            <p>系统始终展示三个组合，分别对应不同投资目标。所有组合使用同一个效用函数进行比较和选择。</p>
+            <code class="guide-code">效用函数（Utility）：
+  U = μ × 1.7 + 质量分 × 0.22 - σ × 0.75 - DD × 0.65 - max(0, β - β_max) × 80
+
+  系数含义：
+  → 1% 额外收益 ≈ 抵消 2.27% 波动上升 或 2.62% 回撤上升
+  → 10 分质量提升 ≈ 抵消 2.9% 波动上升
+  → Beta 超限惩罚极重（-80），鼓励组合贴近但不超过上限
+
+三类推荐：
+  ┌─ 效用最优组合（主推荐）：U 最大
+  ├─ 最低风险组合：σ + DD 最小 —— 代表保守方案
+  └─ 收益上沿组合：μ 最大 —— 代表激进方案
+
+无可分解时：
+  → 展示"最接近目标组合"：放宽可行要求，在所有解中选效用最高的</code>
+            <p class="guide-note">三个组合可能因去重退化为 1-2 个。例如约束极紧时可能只有唯一可行解，此时效用最优=最低风险=收益上沿。点击任意组合卡片可查看完整的推导详情，包括约束检查表、持仓拆解和选择理由。</p>
+          </section>
+
+          <section class="guide-section">
+            <h4>8. 图表阅读指南</h4>
+            <ul>
+              <li><strong>资产池构建</strong>：分子 = 进入优化/遍历的小池子，分母 = 当前可投标的池。等权模式显示 K 值和覆盖策略数。</li>
+              <li><strong>可行解</strong>：同时满足四个约束 + 策略集中度检查的组合数量。等权模式显示精确枚举总量。</li>
+              <li><strong>约束压力</strong>：收益目标 / 风险预算的比值。收益/回撤 > 1.05 时标"偏紧"（可行解少），< 0.45 时标"宽松"（风险预算充裕）。</li>
+              <li><strong>风险-收益前沿图</strong>：横轴 = 组合波动估计，纵轴 = 预期收益。虚线 = 当前约束上限。灰色点 = 不满足约束，绿色点 = 可行解，红色大点 = 最优解。</li>
+              <li><strong>单基金散点图</strong>：横轴 = 历史最大回撤，纵轴 = 预期收益 μ。点大小 = 参数质量分。虚线 = 当前回撤/收益约束。</li>
+            </ul>
+          </section>
+
+          <section class="guide-section">
+            <h4>9. 当前限制与后续路线图</h4>
+            <ul>
+              <li><strong>集中度代理</strong>：当前基于策略分类和产品名称关键词估算，无真实持仓穿透。接入行业/风格/个券暴露后可直接计算 HHI 或有效持仓数。</li>
+              <li><strong>回撤估计</strong>：组合层面使用代理公式而非真实净值路径。接入月度/周度净值后可生成组合收益序列，计算精确 peak-to-trough 回撤。</li>
+              <li><strong>年度数据频率</strong>：PDF 仅有 2019-2025 七个年度收益点，相关性估计自由度有限。更多高频数据（月频）可显著提升 Beta 和相关性精度。</li>
+              <li><strong>效用函数系数</strong>：当前系数基于经验设定，没有经过历史回测校准。建议后续对不同风险厌恶参数做敏感性分析和样本外检验。</li>
+              <li><strong>容量约束</strong>：当前仅检查单品权重上限和策略集中度，未考虑产品 AUM 容量和流动性。接入申赎条款和规模上限后可加入容量约束。</li>
+              <li><strong>近似重复组合</strong>：当前去重仅排除签名完全相同的组合，不识别持仓重叠 >80% 的近似组合。后续可加入 Jaccard 相似度过滤。</li>
+            </ul>
+          </section>
         </div>
       `;
       document.getElementById("detailModal").hidden = false;
@@ -1984,7 +2714,9 @@ AUM / 容量 = 当前未接入</code>
         {
           key: "history",
           label: "历史样本长度",
-          source: `可用年度收益 ${fund.annualCount} 年；按 min(年度样本, 5) / 5 换算。`
+          source: fund.hasDetailData
+            ? `Excel 净值跨度 ${fmtNum(fund.historyEvidenceYears, 1)} 年（${fund.detailNavStart || "-"} 至 ${fund.detailNavEnd || "-"}）；按 min(样本长度, 5) / 5 换算。`
+            : `PDF 可用年度收益 ${fund.annualCount} 年；按 min(年度样本, 5) / 5 换算。`
         },
         {
           key: "market",
@@ -1994,12 +2726,12 @@ AUM / 容量 = 当前未接入</code>
         {
           key: "concentration",
           label: "低集中度风险",
-          source: `集中度风险 proxy ${fmtNum(fund.concentrationRisk, 2)}；由策略大类、策略标签和产品名称估算。`
+          source: `集中度风险估计 ${fmtNum(fund.concentrationRisk, 2)}；由策略大类、策略标签和产品名称估算。`
         },
         {
           key: "data",
           label: "数据口径质量",
-          source: `基础 74；${fund.is_nav_stitched ? "[1] 拼接净值未加分" : "无 [1] +14"}；${fund.is_fee_deducted ? "[2] 费后口径 +8" : "未标 [2] +0"}；${fund.annualCount >= 3 ? "年度样本 >=3 +4" : "年度样本 <3 +0"}${fund.annualCount < 2 ? "；年度样本 <2 -12" : ""}${(!fund.fifty_underlying_start_date || fund.fifty_underlying_start_date === "-") ? "；50底层起始日缺失 -8" : ""}${fund.extraction_quality_notes ? "；抽取备注 -6" : ""}。`
+          source: `基础 74；${(!fund.is_nav_stitched || fund.hasDetailData) ? "净值口径可用 +14" : "[1] 拼接净值未加分"}；${fund.hasDetailData ? "Excel 明细 +8" : "无 Excel 明细 +0"}；${fund.is_fee_deducted ? "[2] 费后口径 +8" : "未标 [2] +0"}；${(fund.historyEvidenceYears >= 3 || fund.annualCount >= 3) ? "样本 >=3 年 +4" : "样本 <3 年 +0"}${(fund.historyEvidenceYears < 1 && fund.annualCount < 2) ? "；样本不足 -12" : ""}${((!fund.fifty_underlying_start_date || fund.fifty_underlying_start_date === "-") && !fund.hasDetailData) ? "；50底层起始日缺失 -8" : ""}${fund.extraction_quality_notes ? "；抽取备注 -6" : ""}。`
         }
       ];
       const contributionSum = dimensionRows.reduce((s, row) => s + fund.scores[row.key] * (state.weights[row.key] || 0), 0);
@@ -2017,34 +2749,41 @@ AUM / 容量 = 当前未接入</code>
         `;
       }).join("");
       const formula = totalWeight > 0
-        ? `综合分 = ${contributionSum.toFixed(1)} / ${totalWeight} = ${fund.scores.total.toFixed(1)}`
-        : `当前所有重要性均为 0，综合分使用默认值 ${fund.scores.total.toFixed(1)}`;
+        ? `参数质量分 = ${contributionSum.toFixed(1)} / ${totalWeight} = ${fund.scores.total.toFixed(1)}`
+        : `当前所有重要性均为 0，参数质量分使用默认值 ${fund.scores.total.toFixed(1)}`;
+      const dataSourceText = fund.hasDetailData
+        ? `Excel 明细：${fund.detailProductName}${fund.detailProductCode ? ` · ${fund.detailProductCode}` : ""}`
+        : "中国50研选池 PDF 年度数据";
       document.querySelector(".detail-card").classList.add("wide");
-      document.getElementById("detailTitle").textContent = "产品综合分计算";
+      document.getElementById("detailTitle").textContent = "参数质量分计算";
       document.getElementById("detailSubtitle").textContent = `${fund.product_name} · ${fund.manager_fund_manager_strategy_label || "管理人/策略标签缺失"}`;
       document.getElementById("detailBody").innerHTML = `
         <div class="detail-grid">
-          <div class="detail-metric"><span>综合分</span><strong>${Math.round(fund.scores.total)}</strong></div>
-          <div class="detail-metric"><span>历史收益折扣</span><strong>${Math.round(fund.haircut * 100)}%</strong></div>
-          <div class="detail-metric"><span>历史收益</span><strong>${fmtPct(fund.rawReturn, 1)}</strong></div>
-          <div class="detail-metric"><span>调整后收益</span><strong>${fmtPct(fund.adjReturn, 1)}</strong></div>
+          <div class="detail-metric"><span>参数质量</span><strong>${Math.round(fund.scores.total)}</strong></div>
+          <div class="detail-metric"><span>收益置信折扣</span><strong>${Math.round(fund.haircut * 100)}%</strong></div>
+          <div class="detail-metric"><span>历史年化</span><strong>${fmtPct(fund.rawReturn, 1)}</strong></div>
+          <div class="detail-metric"><span>预期收益 μ</span><strong>${fmtPct(fund.adjReturn, 1)}</strong></div>
+        </div>
+        <div class="detail-block">
+          <strong>数据来源</strong>
+          <p>${escapeHtml(dataSourceText)}。${fund.hasDetailData ? `净值跨度 ${fmtNum(fund.detailNavYears, 1)} 年，最新规模 ${fmtScale(fund.detailScaleWan)}（${fund.detailScaleDate || "-"}），明细 benchmark：${escapeHtml(fund.detailBenchmarkName || "-")}。` : "该产品尚无高置信 Excel 明细匹配，收益、波动、回撤和 beta 使用 PDF 年度估算数据。"}</p>
         </div>
         <div class="detail-block">
           <strong>维度拆解</strong>
           <div class="detail-table-wrap">
             <table class="detail-table">
-              <thead><tr><th>维度</th><th>这个分怎么来</th><th>维度评分</th><th>左侧重要性</th><th>加权分</th></tr></thead>
+              <thead><tr><th>维度</th><th>指标来源与换算</th><th>指标分</th><th>左侧重要性</th><th>加权分</th></tr></thead>
               <tbody>${rows}</tbody>
             </table>
           </div>
         </div>
         <div class="detail-block">
           <strong>最终计算</strong>
-          <div class="detail-rule">${formula}<br>历史收益折扣 = 45% + 55% × 综合分 / 100 = ${(fund.haircut * 100).toFixed(1)}%<br>调整后收益 = ${fund.rawReturn >= 0 ? "历史收益 × 历史收益折扣" : "历史收益为负，保留原始负收益"} = ${fmtPct(fund.adjReturn, 1)}</div>
+          <div class="detail-rule">${formula}<br>收益置信折扣 = 45% + 55% × 参数质量分 / 100 = ${(fund.haircut * 100).toFixed(1)}%<br>预期收益 μ = ${fund.rawReturn >= 0 ? "历史年化 × 收益置信折扣" : "历史年化为负，保留原始负收益"} = ${fmtPct(fund.adjReturn, 1)}</div>
         </div>
         <div class="detail-block">
-          <strong>怎么进入推荐组合</strong>
-          <p>综合分同时影响历史收益折扣和单品权重上限。分数越高，历史收益保留比例越高，且在当前组合敞口集中度设置下可获得更高的单品权重上限。</p>
+          <strong>怎么进入组合优化</strong>
+          <p>参数质量分同时影响收益置信折扣、单品权重上限和优化资产池优先级。质量越高，历史收益保留比例越高，且在当前组合敞口集中度设置下可获得更高的单品权重上限。</p>
         </div>
       `;
       document.getElementById("detailModal").hidden = false;
@@ -2061,89 +2800,124 @@ AUM / 容量 = 当前未接入</code>
       return `<span class="tag ${pass ? "green" : "rose"}">${pass ? "通过" : "未通过"}</span>`;
     }
     function portfolioSelectionRule(portfolio) {
+      const prefix = state.weightMode === "equal"
+        ? "在精确遍历后的等权组合中"
+        : "在满足当前投资政策约束的组合中";
       if (portfolio.label.includes("低风险")) {
-        return "在满足当前组合目标的组合中，选择“波动 proxy + 回撤 proxy”最低的一组。";
+        return `${prefix}，选择“波动估计 + 回撤估计”最低的一组。`;
       }
-      if (portfolio.label.includes("收益进取")) {
-        return "在满足当前组合目标的组合中，选择调整后预期收益最高的一组。";
+      if (portfolio.label.includes("收益进取") || portfolio.label.includes("收益上沿")) {
+        return `${prefix}，选择预期收益 μ 最高的一组。`;
       }
       if (portfolio.label.includes("最接近")) {
-        return "当前参数下没有完全满足全部目标的组合，因此展示综合目标偏离最小、产品分数和收益风险表现相对更好的组合。";
+        return "当前参数下没有完全满足全部约束的组合，因此展示目标偏离较小、参数质量和收益风险表现相对更好的组合。";
       }
-      return "在满足当前组合目标的组合中，综合考虑调整后收益、组合风险、组合 beta 和产品平均分后得分最高的一组。";
+      return `${prefix}，同时考虑预期收益、组合风险、组合 beta 和参数质量后效用最高的一组。`;
     }
     function openPortfolioDetail(portfolio) {
       if (!portfolio) return;
       document.querySelector(".detail-card").classList.add("wide");
-      document.getElementById("detailTitle").textContent = `${portfolio.label}推导详情`;
-      document.getElementById("detailSubtitle").textContent = portfolio.feasible ? "该组合满足当前组合目标。" : `该组合接近目标，未完全满足：${portfolio.misses.join("、") || "部分约束"}`;
+      document.getElementById("detailTitle").textContent = `${portfolio.label} · 推导详情`;
+      document.getElementById("detailSubtitle").textContent = portfolio.feasible
+        ? "四约束全部通过，该组合为可行解。"
+        : `未完全满足：${portfolio.misses.join("、")}。展示当前可投标的池下最接近目标的组合。`;
       const constraints = [
         ["Required return", fmtPct(portfolio.ret, 1), `≥ ${fmtPct(state.requiredReturn, 1)}`, portfolio.ret >= state.requiredReturn],
         ["Max drawdown", fmtPct(portfolio.dd, 1), `≤ ${fmtPct(state.maxDrawdown, 1)}`, portfolio.dd <= state.maxDrawdown],
         ["Max standard deviation", fmtPct(portfolio.vol, 1), `≤ ${fmtPct(state.maxVol, 1)}`, portfolio.vol <= state.maxVol],
         ["Max beta exposure", fmtNum(portfolio.beta, 2), `≤ ${fmtNum(state.maxBeta, 2)}`, portfolio.beta <= state.maxBeta]
       ];
-      const weightText = weightDefinitions.map(def => `${def.label}: ${state.weights[def.key]}/5`).join("；");
+      const weightText = weightDefinitions.map(def => `${def.label}: ${state.weights[def.key]}/5`).join(" / ");
       const profile = activeConcentrationProfile();
       const candidateMeta = lastCandidatePoolMeta || {};
+      const optimizationMeta = lastOptimizationMeta || {};
       const holdings = portfolio.items
         .map((f, i) => ({ f, w: portfolio.weights[i] }))
         .sort((a, b) => b.w - a.w);
       const holdingsRows = holdings.map(({ f, w }) => {
         const reasons = fundReasons(f);
-        const reason = [...reasons.good.slice(0, 3), ...reasons.bad.slice(0, 2)].join("、") || "中性";
+        const reason = [...reasons.good.slice(0, 3), ...reasons.bad.slice(0, 2)].join("、");
+        const capUsed = f.cap > 0 ? `${((w / f.cap) * 100).toFixed(0)}%` : "-";
         return `
           <tr>
-            <td>${escapeHtml(f.product_name)}<br><span class="panel-subtitle">${escapeHtml(f.manager_fund_manager_strategy_label || "")}</span></td>
-            <td class="num">${(w * 100).toFixed(1)}%</td>
+            <td><strong>${escapeHtml(f.product_name)}</strong><br><span class="panel-subtitle">${escapeHtml(f.manager_fund_manager_strategy_label || "")} · ${escapeHtml(f.section || "")}</span></td>
+            <td class="num"><strong>${(w * 100).toFixed(1)}%</strong></td>
             <td class="num">${Math.round(f.scores.total)}</td>
             <td class="num">${fmtPct(f.rawReturn, 1)}</td>
             <td class="num">${fmtPct(f.adjReturn, 1)}</td>
             <td class="num">${fmtNum(f.beta, 2)}</td>
-            <td class="num">${(f.cap * 100).toFixed(1)}%</td>
-            <td>${escapeHtml(reason)}</td>
+            <td class="num">${fmtScale(f.detailScaleWan)}</td>
+            <td class="num">${(f.cap * 100).toFixed(1)}%<br><span class="panel-subtitle">${capUsed}</span></td>
+            <td>${escapeHtml(reason) || "中性"}</td>
           </tr>
         `;
       }).join("");
+      const utility = portfolioUtility(portfolio);
+      const allFeasible = lastRenderPortfolios.filter(p => p.feasible);
+      const rankBase = allFeasible.length ? allFeasible : lastRenderPortfolios;
+      const utilityRank = rankBase.filter(p => portfolioUtility(p) > utility).length + 1;
+      const riskRank = rankBase.filter(p => (p.vol + p.dd) < (portfolio.vol + portfolio.dd)).length + 1;
+      const returnRank = rankBase.filter(p => p.ret > portfolio.ret).length + 1;
+
       document.getElementById("detailBody").innerHTML = `
         <div class="detail-grid">
           <div class="detail-metric"><span>预期收益</span><strong>${fmtPct(portfolio.ret, 1)}</strong></div>
-          <div class="detail-metric"><span>波动 proxy</span><strong>${fmtPct(portfolio.vol, 1)}</strong></div>
-          <div class="detail-metric"><span>回撤 proxy</span><strong>${fmtPct(portfolio.dd, 1)}</strong></div>
+          <div class="detail-metric"><span>波动估计</span><strong>${fmtPct(portfolio.vol, 1)}</strong></div>
+          <div class="detail-metric"><span>回撤估计</span><strong>${fmtPct(portfolio.dd, 1)}</strong></div>
           <div class="detail-metric"><span>Beta</span><strong>${fmtNum(portfolio.beta, 2)}</strong></div>
         </div>
+
         <div class="detail-block">
-          <strong>当前输入快照</strong>
-          <p>Beta benchmark：${escapeHtml(state.betaBenchmark)}。组合敞口集中度：${escapeHtml(profile.label)}（${escapeHtml(profile.range)}）。候选池：${candidateMeta.count || 0} / ${candidateMeta.eligibleCount || 0} 只，覆盖 ${candidateMeta.sectionCount || 0} 个策略大类。评分偏好：${escapeHtml(weightText)}。暂停申购产品${state.allowPaused ? "允许" : "不允许"}进入优化池。</p>
-        </div>
-        <div class="detail-block">
-          <strong>目标约束检查</strong>
+          <strong>约束检查</strong>
           <div class="detail-table-wrap">
             <table class="detail-table">
-              <thead><tr><th>约束</th><th>当前组合</th><th>目标</th><th>结果</th></tr></thead>
+              <thead><tr><th>约束</th><th>组合值</th><th>目标</th><th>结果</th></tr></thead>
               <tbody>
                 ${constraints.map(([name, actual, target, pass]) => `<tr><td>${name}</td><td class="num">${actual}</td><td class="num">${target}</td><td>${passTag(pass)}</td></tr>`).join("")}
               </tbody>
             </table>
           </div>
         </div>
+
         <div class="detail-block">
-          <strong>产品评分如何进入组合</strong>
-          <p>第 2 步先把每只产品算成综合评分；综合评分越高，历史收益保留比例越高。单品权重上限由产品综合评分和左侧组合敞口集中度共同决定。组合模拟时，每只产品的调整后收益和权重上限都会参与计算。</p>
-          <div class="detail-rule">产品综合评分 = Σ(维度评分 × 用户重要性) / Σ(用户重要性)<br>历史收益折扣 = 45% + 55% × 产品综合评分 / 100<br>调整后收益 = 历史收益 × 历史收益折扣</div>
+          <strong>求解范围与输入</strong>
+          <p>
+            ${state.weightMode === "equal"
+              ? `等权模式 · ${optimizationMeta.fundCount || state.equalFundCount} 只基金，每只 ${(100 / (optimizationMeta.fundCount || state.equalFundCount)).toFixed(1)}%。可遍历资产池 ${optimizationMeta.poolCount || candidateMeta.count || 0} 只，枚举 ${fmtCount(optimizationMeta.generatedCount || 0)} 个组合（${optimizationMeta.totalCombos ? 'C(' + optimizationMeta.poolCount + ',' + optimizationMeta.fundCount + ')=' + fmtCount(optimizationMeta.totalCombos) : '精确遍历'}），其中 ${fmtCount(optimizationMeta.feasibleCount || 0)} 个可行。`
+              : `质量倾斜模式 · ${escapeHtml(profile.label)}（${escapeHtml(profile.range)}）。优化资产池 ${candidateMeta.count || 0} 只（覆盖 ${candidateMeta.sectionCount || 0} 个策略大类），生成 ${fmtCount(optimizationMeta.evaluatedCount || 0)} 个组合解，其中 ${fmtCount(optimizationMeta.feasibleCount || 0)} 个可行。`
+            }
+          </p>
+          <p>Beta benchmark: ${escapeHtml(state.betaBenchmark)}。Excel 明细已接入 ${highConfidenceTargets.length} 只。参数偏好: ${escapeHtml(weightText)}。暂停申购产品${state.allowPaused ? "允许" : "不允许"}进池。</p>
         </div>
+
         <div class="detail-block">
           <strong>持仓拆解</strong>
           <div class="detail-table-wrap">
             <table class="detail-table">
-              <thead><tr><th>产品</th><th>权重</th><th>综合分</th><th>历史收益</th><th>调整后收益</th><th>Beta</th><th>权重上限</th><th>主要原因</th></tr></thead>
+              <thead><tr><th>产品</th><th>权重</th><th>质量</th><th>历史年化</th><th>预期μ</th><th>Beta</th><th>规模</th><th>上限/使用</th><th>关键特征</th></tr></thead>
               <tbody>${holdingsRows}</tbody>
             </table>
           </div>
         </div>
+
         <div class="detail-block">
-          <strong>为什么选中这个组合</strong>
-          <p>${portfolioSelectionRule(portfolio)}</p>
+          <strong>选中理由</strong>
+          <p>效用分 = ${utility.toFixed(1)}，在 ${rankBase.length} 个${allFeasible.length ? "可行" : ""}解中排名第 ${utilityRank}。
+          ${portfolio.label.includes("低风险") ? `风险值（σ+DD=${fmtPct(portfolio.vol + portfolio.dd, 1)}）是可行解中最低的，在 ${allFeasible.length || rankBase.length} 个组合中风险排名第 ${riskRank}。` : ""}
+          ${portfolio.label.includes("收益上沿") ? `预期收益（μ=${fmtPct(portfolio.ret, 1)}）是可行解中最高的，在 ${allFeasible.length || rankBase.length} 个组合中收益排名第 ${returnRank}。` : ""}
+          ${portfolio.label.includes("效用最优") ? `该组合在收益、质量和风险之间取得了最佳平衡。` : ""}
+          ${portfolio.label.includes("最接近") ? `当前无完全可行解，该组合在收益—风险—约束偏离之间综合最优。` : ""}
+          </p>
+          <div class="detail-rule">效用 = μ×1.7 + 质量×0.22 − σ×0.75 − DD×0.65 − max(0,β−β<sub>max</sub>)×80<br>组合效用 = ${fmtPct(portfolio.ret, 1)}×1.7 + ${fmtNum(portfolio.productScore, 1)}×0.22 − ${fmtPct(portfolio.vol, 1)}×0.75 − ${fmtPct(portfolio.dd, 1)}×0.65${portfolio.beta > state.maxBeta ? " − " + fmtNum(portfolio.beta - state.maxBeta, 2) + "×80" : ""} = ${utility.toFixed(1)}</div>
+        </div>
+
+        <div class="detail-block">
+          <strong>模型参数</strong>
+          <p>${state.weightMode === "equal"
+            ? "等权模式下所有基金权重固定为 1/K。参数质量分影响收益置信折扣和入池优先级，但不影响权重。"
+            : "质量倾斜模式下，参数质量分同时作用于收益置信折扣、单品权重上限和优先入池顺序。权重由效用搜索+上限约束共同决定。"
+          }</p>
+          <div class="detail-rule">参数质量分 = Σ(维度分 × 重要性) / Σ(重要性)<br>收益置信折扣 = 45% + 55% × 参数质量分 / 100<br>预期收益 μ = 历史年化 × 收益置信折扣（负收益不折扣）<br>单品上限: 质量≥85→${(profile.caps[0].cap*100).toFixed(0)}% / ≥75→${(profile.caps[1].cap*100).toFixed(0)}% / ≥65→${(profile.caps[2].cap*100).toFixed(0)}% / ≥55→${(profile.caps[3].cap*100).toFixed(0)}% / <55→${(profile.caps[4].cap*100).toFixed(0)}%</div>
         </div>
       `;
       document.getElementById("detailModal").hidden = false;
@@ -2151,36 +2925,55 @@ AUM / 容量 = 当前未接入</code>
     function closeDetail() {
       document.getElementById("detailModal").hidden = true;
     }
+    function updateApplyState() {
+      const dirty = hasPendingModelChanges();
+      const button = document.getElementById("applyBtn");
+      const status = document.getElementById("applyStatus");
+      if (!button || !status) return;
+      button.disabled = !dirty;
+      button.innerHTML = `<i data-lucide="pie-chart" class="icon"></i>${dirty ? "应用并计算" : "已应用"}`;
+      status.textContent = dirty ? "左侧参数已有改动，右侧结果仍是上一次计算结果。" : "当前右侧结果已应用左侧参数。";
+    }
     function renderControls() {
-      document.getElementById("requiredReturnVal").textContent = state.requiredReturn.toFixed(1);
-      document.getElementById("maxDrawdownVal").textContent = state.maxDrawdown.toFixed(1);
-      document.getElementById("maxVolVal").textContent = state.maxVol.toFixed(1);
-      document.getElementById("maxBetaVal").textContent = state.maxBeta.toFixed(2);
-      document.getElementById("betaBenchmarkLabel").textContent = state.betaBenchmark;
+      const ui = draftState;
+      document.getElementById("requiredReturnVal").textContent = ui.requiredReturn.toFixed(1);
+      document.getElementById("maxDrawdownVal").textContent = ui.maxDrawdown.toFixed(1);
+      document.getElementById("maxVolVal").textContent = ui.maxVol.toFixed(1);
+      document.getElementById("maxBetaVal").textContent = ui.maxBeta.toFixed(2);
+      document.getElementById("betaBenchmarkLabel").textContent = ui.betaBenchmark;
       document.getElementById("benchmarkPill").textContent = state.betaBenchmark.replace("指数", "");
-      const profile = activeConcentrationProfile();
-      document.getElementById("concentrationModeLabel").textContent = `${profile.label} · ${profile.range}`;
+      const profile = activeConcentrationProfile(ui);
+      document.getElementById("concentrationModeLabel").textContent = ui.weightMode === "equal"
+        ? `${profile.label} · ${ui.equalFundCount}只等权`
+        : `${profile.label} · ${profile.range}`;
       document.getElementById("concentrationModeHelp").textContent = profile.help;
-      document.getElementById("allowPaused").checked = state.allowPaused;
+      const mode = weightModes[ui.weightMode] || weightModes.equal;
+      document.getElementById("weightModeLabel").textContent = mode.label;
+      document.getElementById("weightModeHelp").textContent = mode.help;
+      document.getElementById("weightMode").value = ui.weightMode;
+      document.getElementById("equalFundCountVal").textContent = ui.equalFundCount;
+      document.getElementById("equalFundCount").value = ui.equalFundCount;
+      document.getElementById("equalFundCountField").style.opacity = ui.weightMode === "equal" ? "1" : ".52";
+      document.getElementById("allowPaused").checked = ui.allowPaused;
       for (const id of ["requiredReturn", "maxDrawdown", "maxVol", "maxBeta"]) {
-        document.getElementById(id).value = state[id];
+        document.getElementById(id).value = ui[id];
       }
       const benchmarkSelect = document.getElementById("betaBenchmark");
       benchmarkSelect.innerHTML = marketBenchmarks.map(benchmark => `
-        <option value="${benchmark.name}" ${benchmark.name === state.betaBenchmark ? "selected" : ""}>${benchmark.name}</option>
+        <option value="${benchmark.name}" ${benchmark.name === ui.betaBenchmark ? "selected" : ""}>${benchmark.name}</option>
       `).join("");
       const concentrationSelect = document.getElementById("concentrationMode");
       concentrationSelect.innerHTML = Object.entries(concentrationProfiles).map(([key, mode]) => `
-        <option value="${key}" ${key === state.concentrationMode ? "selected" : ""}>${mode.label}（${mode.range}）</option>
+        <option value="${key}" ${key === ui.concentrationMode ? "selected" : ""}>${mode.label}（${mode.range}）</option>
       `).join("");
       const active = weightDefinitions
-        .filter(def => (state.weights[def.key] || 0) > 0)
-        .sort((a, b) => state.weights[b.key] - state.weights[a.key]);
+        .filter(def => (ui.weights[def.key] || 0) > 0)
+        .sort((a, b) => ui.weights[b.key] - ui.weights[a.key]);
       const summary = document.getElementById("weightSummary");
       if (!active.length) {
-        summary.innerHTML = `<strong>当前未启用评分项。</strong><br>至少把一个维度调到 1 分以上，组合推荐会恢复产品综合分排序。`;
+        summary.innerHTML = `<strong>当前未启用参数偏好。</strong><br>至少把一个维度调到 1 分以上，组合优化会恢复参数质量排序。`;
       } else {
-        summary.innerHTML = `<strong>分数代表相对重要性。</strong><br>0 = 不纳入评分；1 = 轻度参考；3 = 正常看重；5 = 核心判断项。`;
+        summary.innerHTML = `<strong>分数代表相对重要性。</strong><br>0 = 不纳入参数质量；1 = 轻度参考；3 = 正常看重；5 = 核心判断项。`;
       }
       const controls = document.getElementById("weightControls");
       controls.innerHTML = weightDefinitions.map(def => `
@@ -2190,13 +2983,13 @@ AUM / 容量 = 当前未接入</code>
               <strong>${def.label}</strong>
               <button class="detail-btn" data-detail="${def.key}" type="button" aria-label="${def.label}详情">i</button>
             </div>
-            <span>${state.weights[def.key]}/5</span>
+            <span>${ui.weights[def.key]}/5</span>
           </div>
           <div class="battery-control">
-            <button class="zero-btn ${state.weights[def.key] === 0 ? "active" : ""}" data-weight="${def.key}" data-score="0" type="button">0</button>
-            <div class="battery-bar" aria-label="${def.label} 评分">
+            <button class="zero-btn ${ui.weights[def.key] === 0 ? "active" : ""}" data-weight="${def.key}" data-score="0" type="button">0</button>
+            <div class="battery-bar" aria-label="${def.label} 重要性">
               ${[1,2,3,4,5].map(score => `
-                <button class="battery-cell ${score <= state.weights[def.key] ? "filled" : ""}" data-weight="${def.key}" data-score="${score}" type="button" title="${score}/5"></button>
+                <button class="battery-cell ${score <= ui.weights[def.key] ? "filled" : ""}" data-weight="${def.key}" data-score="${score}" type="button" title="${score}/5"></button>
               `).join("")}
             </div>
           </div>
@@ -2206,20 +2999,30 @@ AUM / 容量 = 当前未接入</code>
       `).join("");
       controls.querySelectorAll("button[data-weight]").forEach(button => {
         button.addEventListener("click", () => {
-          state.weights[button.dataset.weight] = Number(button.dataset.score);
-          render();
+          draftState.weights[button.dataset.weight] = Number(button.dataset.score);
+          renderControls();
         });
       });
       controls.querySelectorAll("button[data-detail]").forEach(button => {
         button.addEventListener("click", () => openDetail(button.dataset.detail));
       });
+      updateApplyState();
+      if (window.lucide) window.lucide.createIcons();
     }
     function renderStats(eligible, portfolios, selected) {
       document.getElementById("dataCount").textContent = baseFunds.length;
+      document.getElementById("detailCount").textContent = highConfidenceTargets.length;
       const candidateMeta = lastCandidatePoolMeta || {};
-      document.getElementById("candidatePoolCount").textContent = candidateMeta.count || 0;
-      document.getElementById("candidatePoolText").textContent = `从 ${eligible.length} 只合格候选中入池；覆盖 ${candidateMeta.sectionCount || 0} 个策略大类`;
-      document.getElementById("feasibleCount").textContent = portfolios.filter(p => p.feasible).length;
+      const optimizationMeta = lastOptimizationMeta || {};
+      document.getElementById("candidatePoolCount").textContent = `${candidateMeta.count || 0}/${eligible.length}`;
+      document.getElementById("candidatePoolText").textContent = state.weightMode === "equal"
+        ? `可遍历资产池 / 可投标的池；K=${optimizationMeta.fundCount || state.equalFundCount}，覆盖 ${candidateMeta.sectionCount || 0} 个策略大类`
+        : `优化资产池 / 可投标的池；覆盖 ${candidateMeta.sectionCount || 0} 个策略大类`;
+      document.getElementById("feasibleCount").textContent = fmtCount(optimizationMeta.feasibleCount ?? portfolios.filter(p => p.feasible).length);
+      document.getElementById("feasibleText").textContent = state.weightMode === "equal"
+        ? `精确遍历 ${fmtCount(optimizationMeta.generatedCount || 0)} 个等权组合`
+        : `确定性搜索 ${fmtCount(optimizationMeta.evaluatedCount || portfolios.length)} 个组合解`;
+      document.getElementById("frontierPointLabel").textContent = state.weightMode === "equal" ? "遍历评估解" : "搜索生成解";
       document.getElementById("recommendedName").textContent = selected?.label ? selected.label.replace("组合", "") : "-";
       const rr = state.requiredReturn / Math.max(state.maxDrawdown, 1);
       const rv = state.requiredReturn / Math.max(state.maxVol, 1);
@@ -2227,7 +3030,7 @@ AUM / 容量 = 当前未接入</code>
       let text = "目标约束有可探索空间。";
       if (rr > 1.05 || rv > 0.85) {
         label = "偏紧";
-        text = "收益目标相对回撤/波动预算偏高，可行组合会减少。";
+        text = "收益目标相对回撤/波动预算偏高，可行解会减少。";
       } else if (rr < 0.45 && rv < 0.45) {
         label = "宽松";
         text = "风险预算相对收益目标较宽，可优先看低风险组合。";
@@ -2238,7 +3041,7 @@ AUM / 容量 = 当前未接入</code>
     function renderPortfolioCards(selectedList) {
       const box = document.getElementById("portfolioCards");
       if (!selectedList.length) {
-        box.innerHTML = `<div class="portfolio-card"><div class="portfolio-head"><h3>暂无推荐</h3><p>当前参数下没有足够候选产品。</p></div></div>`;
+        box.innerHTML = `<div class="portfolio-card"><div class="portfolio-head"><h3>暂无最优解</h3><p>当前参数下没有足够可投标的。</p></div></div>`;
         return;
       }
       box.innerHTML = selectedList.map((p, portfolioIndex) => {
@@ -2261,14 +3064,14 @@ AUM / 容量 = 当前未接入</code>
             <div class="portfolio-head">
               <div>
                 <h3>${p.label}</h3>
-                <p>${p.feasible ? "满足当前组合目标" : `未完全满足：${p.misses.join("、") || "接近目标"}`}</p>
+                <p>${p.feasible ? "满足当前投资政策约束" : `未完全满足：${p.misses.join("、") || "接近目标"}`}</p>
               </div>
               <span class="tag ${p.feasible ? "teal" : "amber"}">${p.feasible ? "可行" : "近似"}</span>
             </div>
             <div class="metric-row">
               <div class="mini-metric"><span>预期收益</span><strong>${fmtPct(p.ret, 1)}</strong></div>
               <div class="mini-metric"><span>波动</span><strong>${fmtPct(p.vol, 1)}</strong></div>
-              <div class="mini-metric"><span>回撤 proxy</span><strong>${fmtPct(p.dd, 1)}</strong></div>
+              <div class="mini-metric"><span>回撤估计</span><strong>${fmtPct(p.dd, 1)}</strong></div>
               <div class="mini-metric"><span>Beta</span><strong>${fmtNum(p.beta, 2)}</strong></div>
             </div>
             <div class="holdings">${holdings}</div>
@@ -2292,7 +3095,7 @@ AUM / 容量 = 当前未接入</code>
       const limited = rows.slice(0, 90);
       document.getElementById("visibleCount").textContent = rows.length;
       if (!limited.length) {
-        body.innerHTML = `<tr><td colspan="14">没有匹配产品。</td></tr>`;
+        body.innerHTML = `<tr><td colspan="15">没有匹配产品。</td></tr>`;
         return;
       }
       body.innerHTML = limited.map(f => {
@@ -2307,6 +3110,9 @@ AUM / 容量 = 当前未接入</code>
           f.is_fee_deducted ? "[2]" : "",
           f.is_subscription_paused ? "[3]" : ""
         ].filter(Boolean).join(" ");
+        const sourceTag = f.hasDetailData ? `<span class="tag blue">Excel明细</span>` : "";
+        const flagTag = flags ? `<span class="tag amber">${flags}</span>` : "";
+        const noFlagTag = !sourceTag && !flagTag ? `<span class="tag green">无特殊标记</span>` : "";
         return `
           <tr>
             <td>
@@ -2316,7 +3122,8 @@ AUM / 容量 = 当前未接入</code>
               </div>
             </td>
             <td><span class="tag ${sectionTags[f.section] || "gray"}">${f.section}</span><div class="panel-subtitle">${f.subsection || ""}</div></td>
-            <td><div class="score-cell"><button class="score-ring" data-score-detail="${f.id}" style="--angle:${angle}deg" type="button" aria-label="${escapeHtml(f.product_name)} 综合分计算详情"><span>${Math.round(f.scores.total)}</span></button></div></td>
+            <td class="num">${fmtScale(f.detailScaleWan)}</td>
+            <td><div class="score-cell"><button class="score-ring" data-score-detail="${f.id}" style="--angle:${angle}deg" type="button" aria-label="${escapeHtml(f.product_name)} 参数质量分计算详情"><span>${Math.round(f.scores.total)}</span></button></div></td>
             <td class="num">${Math.round(f.haircut * 100)}%</td>
             <td class="num ${f.adjReturn >= 0 ? "positive" : "negative"}">${fmtPct(f.adjReturn, 1)}</td>
             <td class="num ${f.rawReturn >= 0 ? "positive" : "negative"}">${fmtPct(f.rawReturn, 1)}</td>
@@ -2325,8 +3132,8 @@ AUM / 容量 = 当前未接入</code>
             <td class="num">${fmtNum(f.beta, 2)}</td>
             <td class="num">${fmtNum(f.marketCorr, 2)}</td>
             <td class="num">${fmtNum(f.concentrationRisk, 2)}</td>
-            <td class="num">${f.annualCount} 年</td>
-            <td>${flags ? `<span class="tag amber">${flags}</span>` : `<span class="tag green">无特殊标记</span>`}</td>
+            <td class="num">${f.hasDetailData ? `${fmtNum(f.historyEvidenceYears, 1)} 年` : `${f.annualCount} 年`}</td>
+            <td>${sourceTag} ${flagTag} ${noFlagTag}</td>
             <td><div class="reason-list">${reasonHtml || "中性"}</div></td>
           </tr>
         `;
@@ -2371,7 +3178,7 @@ AUM / 容量 = 当前未接入</code>
       const maxY = Math.max(state.requiredReturn * 1.2, ...pts.map(p => p.ret), 12);
       const x = v => pad.left + (v / maxX) * (w - pad.left - pad.right);
       const y = v => pad.top + (1 - (v - minY) / (maxY - minY)) * (h - pad.top - pad.bottom);
-      drawAxes(ctx, w, h, pad, "波动 proxy", "预期收益");
+      drawAxes(ctx, w, h, pad, "波动估计", "预期收益");
       ctx.strokeStyle = "rgba(190,18,60,.35)";
       ctx.setLineDash([5, 5]);
       ctx.beginPath();
@@ -2409,7 +3216,7 @@ AUM / 容量 = 当前未接入</code>
       const maxY = Math.max(state.requiredReturn * 1.3, ...funds.map(f => f.adjReturn), 12);
       const x = v => pad.left + (v / maxX) * (w - pad.left - pad.right);
       const y = v => pad.top + (1 - (v - minY) / (maxY - minY)) * (h - pad.top - pad.bottom);
-      drawAxes(ctx, w, h, pad, "历史最大回撤", "调整后收益");
+      drawAxes(ctx, w, h, pad, "历史最大回撤", "预期收益 μ");
       ctx.strokeStyle = "rgba(190,18,60,.35)";
       ctx.setLineDash([5, 5]);
       ctx.beginPath();
@@ -2441,6 +3248,25 @@ AUM / 容量 = 当前未接入</code>
       document.getElementById("statusFilter").value = state.status;
       document.getElementById("sortSelect").value = state.sort;
     }
+    function renderTableOnly() {
+      const all = lastRenderAll.length ? lastRenderAll : scoredFunds();
+      renderRows(filteredRows(all));
+      if (window.lucide) window.lucide.createIcons();
+    }
+    function applyDraftAndRender() {
+      const button = document.getElementById("applyBtn");
+      const status = document.getElementById("applyStatus");
+      if (button) {
+        button.disabled = true;
+        button.innerHTML = `<i data-lucide="pie-chart" class="icon"></i>计算中`;
+      }
+      if (status) status.textContent = "正在根据左侧参数重新计算组合。";
+      if (window.lucide) window.lucide.createIcons();
+      window.setTimeout(() => {
+        copyModelValues(draftState, state);
+        render();
+      }, 0);
+    }
     function render() {
       renderControls();
       renderFilters();
@@ -2448,6 +3274,9 @@ AUM / 容量 = 当前未接入</code>
       const eligible = eligibleFunds(all);
       const portfolios = makePortfolios(eligible);
       const selected = choosePortfolios(portfolios);
+      lastRenderAll = all;
+      lastRenderPortfolios = portfolios;
+      lastRenderSelected = selected;
       renderStats(eligible, portfolios, selected[0]);
       renderPortfolioCards(selected);
       renderRows(filteredRows(all));
@@ -2458,42 +3287,53 @@ AUM / 容量 = 当前未接入</code>
     }
     ["requiredReturn", "maxDrawdown", "maxVol", "maxBeta"].forEach(id => {
       document.getElementById(id).addEventListener("input", e => {
-        state[id] = Number(e.target.value);
-        render();
+        draftState[id] = Number(e.target.value);
+        renderControls();
       });
     });
     document.getElementById("betaBenchmark").addEventListener("change", e => {
-      state.betaBenchmark = e.target.value;
-      render();
+      draftState.betaBenchmark = e.target.value;
+      renderControls();
     });
     document.getElementById("concentrationMode").addEventListener("change", e => {
-      state.concentrationMode = e.target.value;
-      render();
+      draftState.concentrationMode = e.target.value;
+      renderControls();
+    });
+    document.getElementById("weightMode").addEventListener("change", e => {
+      draftState.weightMode = e.target.value;
+      renderControls();
+    });
+    document.getElementById("equalFundCount").addEventListener("input", e => {
+      draftState.equalFundCount = Number(e.target.value);
+      renderControls();
     });
     document.getElementById("allowPaused").addEventListener("change", e => {
-      state.allowPaused = e.target.checked;
-      render();
+      draftState.allowPaused = e.target.checked;
+      renderControls();
     });
     document.getElementById("sectionFilter").addEventListener("change", e => {
       state.section = e.target.value;
-      render();
+      renderTableOnly();
     });
     document.getElementById("statusFilter").addEventListener("change", e => {
       state.status = e.target.value;
-      render();
+      renderTableOnly();
     });
     document.getElementById("sortSelect").addEventListener("change", e => {
       state.sort = e.target.value;
-      render();
+      renderTableOnly();
     });
     document.getElementById("searchInput").addEventListener("input", e => {
       state.search = e.target.value;
-      render();
+      renderTableOnly();
     });
+    document.getElementById("applyBtn").addEventListener("click", applyDraftAndRender);
     document.getElementById("resetBtn").addEventListener("click", () => {
       Object.assign(state, structuredClone(defaultState));
+      Object.assign(draftState, structuredClone(defaultState));
       render();
     });
+    document.getElementById("methodGuideBtn").addEventListener("click", openMethodologyGuide);
     document.getElementById("drawdownInfoBtn").addEventListener("click", openDrawdownProxyDetail);
     document.getElementById("detailClose").addEventListener("click", closeDetail);
     document.getElementById("detailModal").addEventListener("click", e => {
@@ -2503,11 +3343,8 @@ AUM / 容量 = 当前未接入</code>
       if (e.key === "Escape") closeDetail();
     });
     window.addEventListener("resize", () => {
-      const all = scoredFunds();
-      const eligible = eligibleFunds(all);
-      const portfolios = makePortfolios(eligible);
-      drawFrontier(portfolios, choosePortfolios(portfolios));
-      drawProductChart(all);
+      drawFrontier(lastRenderPortfolios, lastRenderSelected);
+      drawProductChart(lastRenderAll);
     });
     render();
   </script>
