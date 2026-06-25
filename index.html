@@ -803,7 +803,7 @@
       padding: 18px;
     }
     .detail-card.wide {
-      width: min(940px, 100%);
+      width: min(1120px, 100%);
     }
     .detail-head {
       display: flex;
@@ -906,6 +906,115 @@
       color: var(--ink);
       font-size: 12px;
       line-height: 1.55;
+      white-space: pre-line;
+    }
+    .portfolio-derivation {
+      display: grid;
+      gap: 14px;
+    }
+    .derivation-overview {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .derivation-overview .detail-metric {
+      display: grid;
+      gap: 4px;
+      min-height: 92px;
+    }
+    .detail-metric small {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.35;
+    }
+    .derivation-step {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      overflow: hidden;
+    }
+    .derivation-step-head {
+      display: grid;
+      grid-template-columns: 32px minmax(0, 1fr);
+      gap: 10px;
+      align-items: start;
+      padding: 12px;
+      border-bottom: 1px solid var(--line-soft);
+      background: #fbfcfc;
+    }
+    .step-index {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      background: var(--teal-soft);
+      color: var(--teal);
+      font-weight: 900;
+      font-size: 13px;
+      font-variant-numeric: tabular-nums;
+    }
+    .derivation-step-head strong {
+      display: block;
+      margin: 0 0 4px;
+      font-size: 14px;
+    }
+    .derivation-step-head p,
+    .derivation-step-body p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.55;
+    }
+    .derivation-step-body {
+      display: grid;
+      gap: 10px;
+      padding: 12px;
+    }
+    .detail-chip-line {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+    }
+    .detail-chip-line span {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      padding: 0 8px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: #fbfcfc;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.2;
+    }
+    .detail-table.is-policy {
+      min-width: 620px;
+    }
+    .detail-table.is-quality {
+      min-width: 980px;
+    }
+    .detail-table.is-pool {
+      min-width: 780px;
+    }
+    .detail-table.is-constraints {
+      min-width: 640px;
+    }
+    .detail-name-cell {
+      min-width: 240px;
+    }
+    .score-breakdown {
+      min-width: 210px;
+      font-variant-numeric: tabular-nums;
+    }
+    .score-breakdown strong {
+      display: block;
+      margin-bottom: 3px;
+      font-size: 13px;
+    }
+    .derivation-formula {
+      border: 1px solid var(--line-soft);
     }
     .guide-doc {
       display: grid;
@@ -1071,6 +1180,14 @@
       .layout { padding: 12px; }
       .sidebar, .method, .stats-grid { grid-template-columns: 1fr; }
       .detail-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .detail-modal { padding: 10px; }
+      .detail-card { padding: 14px; max-height: 90vh; }
+      .derivation-overview { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .derivation-step-head {
+        grid-template-columns: 28px minmax(0, 1fr);
+        padding: 10px;
+      }
+      .derivation-step-body { padding: 10px; }
       .metric-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .chart-wrap { height: 260px; }
       .table-toolbar { align-items: stretch; }
@@ -2819,105 +2936,252 @@ Step 7: 效用最优 / 最低风险 / 收益上沿 三类结果</code>
       document.querySelector(".detail-card").classList.add("wide");
       document.getElementById("detailTitle").textContent = `${portfolio.label} · 推导详情`;
       document.getElementById("detailSubtitle").textContent = portfolio.feasible
-        ? "四约束全部通过，该组合为可行解。"
-        : `未完全满足：${portfolio.misses.join("、")}。展示当前可投标的池下最接近目标的组合。`;
-      const constraints = [
-        ["Required return", fmtPct(portfolio.ret, 1), `≥ ${fmtPct(state.requiredReturn, 1)}`, portfolio.ret >= state.requiredReturn],
-        ["Max drawdown", fmtPct(portfolio.dd, 1), `≤ ${fmtPct(state.maxDrawdown, 1)}`, portfolio.dd <= state.maxDrawdown],
-        ["Max standard deviation", fmtPct(portfolio.vol, 1), `≤ ${fmtPct(state.maxVol, 1)}`, portfolio.vol <= state.maxVol],
-        ["Max beta exposure", fmtNum(portfolio.beta, 2), `≤ ${fmtNum(state.maxBeta, 2)}`, portfolio.beta <= state.maxBeta]
-      ];
-      const weightText = weightDefinitions.map(def => `${def.label}: ${state.weights[def.key]}/5`).join(" / ");
+        ? "该组合满足所有约束，以下是它被推导出来的完整过程。"
+        : `未满足：${portfolio.misses.join("、")}。以下是当前参数下最接近目标的推导过程。`;
+
       const profile = activeConcentrationProfile();
       const candidateMeta = lastCandidatePoolMeta || {};
       const optimizationMeta = lastOptimizationMeta || {};
       const holdings = portfolio.items
         .map((f, i) => ({ f, w: portfolio.weights[i] }))
         .sort((a, b) => b.w - a.w);
-      const holdingsRows = holdings.map(({ f, w }) => {
-        const reasons = fundReasons(f);
-        const reason = [...reasons.good.slice(0, 3), ...reasons.bad.slice(0, 2)].join("、");
-        const capUsed = f.cap > 0 ? `${((w / f.cap) * 100).toFixed(0)}%` : "-";
+
+      // ── Step 1: 投资政策 ──
+      const policyRows = [
+        ["预期收益下限", `${fmtPct(state.requiredReturn, 1)}`, ""],
+        ["最大回撤预算", `${fmtPct(state.maxDrawdown, 1)}`, "组合回撤使用双重估计口径"],
+        ["波动上限", `${fmtPct(state.maxVol, 1)}`, ""],
+        ["Beta 基准 / 上限", `${escapeHtml(state.betaBenchmark)} / ≤${fmtNum(state.maxBeta, 2)}`, ""],
+        ["集中度模式", `${profile.label}（${state.weightMode === "equal" ? state.equalFundCount + "只等权" : profile.range}）`, `单品上限 ${(profile.caps[0].cap*100).toFixed(0)}%-${(profile.caps[4].cap*100).toFixed(0)}%，策略上限 ${(profile.sectionCap*100).toFixed(0)}%`],
+        ["权重方式", state.weightMode === "equal" ? "等权" : "质量倾斜", state.weightMode === "equal" ? `每只固定 1/${state.equalFundCount} = ${fmtPct(100/state.equalFundCount, 1)}` : "权重由参数质量和风险特征搜索决定"],
+      ];
+
+      // ── Step 2: 参数质量 → 收益折扣 ──
+      const weightTotal = Object.values(state.weights).reduce((s, v) => s + v, 0) || 1;
+      const qualityRows = holdings.map(({ f, w }) => {
+        const dims = [
+          { label: "历史样本", key: "history", value: f.scores.history, wt: state.weights.history },
+          { label: "低大盘相关", key: "market", value: f.scores.market, wt: state.weights.market },
+          { label: "低集中度", key: "concentration", value: f.scores.concentration, wt: state.weights.concentration },
+          { label: "数据口径", key: "data", value: f.scores.data, wt: state.weights.data },
+        ];
+        const dimBreakdown = dims
+          .filter(d => d.wt > 0)
+          .map(d => `${d.label} ${d.value.toFixed(0)}×${d.wt}`)
+          .join(" + ");
+        const evidenceText = f.hasDetailData
+          ? `净值跨度 ${fmtNum(f.historyEvidenceYears, 1)}年`
+          : `PDF ${f.annualCount}年`;
         return `
           <tr>
-            <td><strong>${escapeHtml(f.product_name)}</strong><br><span class="panel-subtitle">${escapeHtml(f.manager_fund_manager_strategy_label || "")} · ${escapeHtml(f.section || "")}</span></td>
-            <td class="num"><strong>${(w * 100).toFixed(1)}%</strong></td>
-            <td class="num">${Math.round(f.scores.total)}</td>
+            <td class="detail-name-cell"><strong>${escapeHtml(f.product_name)}</strong><br><span class="panel-subtitle">${escapeHtml(f.manager_fund_manager_strategy_label || "")} · ${escapeHtml(f.section || "")}</span></td>
+            <td class="score-breakdown"><strong>${Math.round(f.scores.total)}</strong><span class="panel-subtitle">${escapeHtml(dimBreakdown)} / ${weightTotal}</span></td>
+            <td class="num">${Math.round(f.haircut * 100)}%<br><span class="panel-subtitle">${evidenceText}</span></td>
             <td class="num">${fmtPct(f.rawReturn, 1)}</td>
-            <td class="num">${fmtPct(f.adjReturn, 1)}</td>
-            <td class="num">${fmtNum(f.beta, 2)}</td>
-            <td class="num">${fmtScale(f.detailScaleWan)}</td>
-            <td class="num">${(f.cap * 100).toFixed(1)}%<br><span class="panel-subtitle">${capUsed}</span></td>
-            <td>${escapeHtml(reason) || "中性"}</td>
+            <td class="num"><strong>${fmtPct(f.adjReturn, 1)}</strong></td>
+            <td class="num">${(w * 100).toFixed(1)}%</td>
           </tr>
         `;
       }).join("");
+
+      // ── Step 3: 候选池 → 入选理由 ──
+      const poolRows = holdings.map(({ f }) => {
+        const reason = f.candidateReason || "优先级补足";
+        return `
+          <tr>
+            <td class="detail-name-cell"><strong>${escapeHtml(f.product_name)}</strong></td>
+            <td><span class="tag ${sectionTags[f.section] || "gray"}">${escapeHtml(f.section)}</span></td>
+            <td>${Math.round(f.scores.total)}</td>
+            <td>${escapeHtml(reason)}</td>
+          </tr>
+        `;
+      }).join("");
+      const sectionList = [...new Set(holdings.map(h => h.f.section))];
+      const filterSummary = [
+        `可投标的池 ${eligibleFunds(scoredFunds()).length} 只`,
+        `质量≥${state.weightMode === "equal" ? 35 : "35/45"} + 样本≥${state.weightMode === "equal" ? "2年" : "1年/2年"}`,
+        `策略大类 ${sectionList.length} 个`,
+        `管理人分散 ≤2 只/家`,
+        `相关性去重 ≤0.86`,
+        state.allowPaused ? "含暂停申购" : "仅可申购",
+      ];
+
+      // ── Step 4: 约束评估 ──
+      const constraintRows = [
+        {
+          name: "预期收益下限",
+          actual: `${fmtPct(portfolio.ret, 1)}`,
+          target: `≥ ${fmtPct(state.requiredReturn, 1)}`,
+          margin: portfolio.ret >= state.requiredReturn
+            ? `+${fmtPct(portfolio.ret - state.requiredReturn, 1)}`
+            : `${fmtPct(portfolio.ret - state.requiredReturn, 1)}`,
+          pass: portfolio.ret >= state.requiredReturn
+        },
+        {
+          name: "最大回撤",
+          actual: `${fmtPct(portfolio.dd, 1)}`,
+          target: `≤ ${fmtPct(state.maxDrawdown, 1)}`,
+          margin: portfolio.dd <= state.maxDrawdown
+            ? `${fmtPct(state.maxDrawdown - portfolio.dd, 1)}`
+            : `+${fmtPct(portfolio.dd - state.maxDrawdown, 1)}`,
+          pass: portfolio.dd <= state.maxDrawdown
+        },
+        {
+          name: "波动上限",
+          actual: `${fmtPct(portfolio.vol, 1)}`,
+          target: `≤ ${fmtPct(state.maxVol, 1)}`,
+          margin: portfolio.vol <= state.maxVol
+            ? `${fmtPct(state.maxVol - portfolio.vol, 1)}`
+            : `+${fmtPct(portfolio.vol - state.maxVol, 1)}`,
+          pass: portfolio.vol <= state.maxVol
+        },
+        {
+          name: "Beta 上限",
+          actual: `${fmtNum(portfolio.beta, 2)}`,
+          target: `≤ ${fmtNum(state.maxBeta, 2)}`,
+          margin: portfolio.beta <= state.maxBeta
+            ? `${fmtNum(state.maxBeta - portfolio.beta, 2)}`
+            : `+${fmtNum(portfolio.beta - state.maxBeta, 2)}`,
+          pass: portfolio.beta <= state.maxBeta
+        },
+      ];
+
+      // ── Step 5: 效用排序 ──
       const utility = portfolioUtility(portfolio);
       const allFeasible = lastRenderPortfolios.filter(p => p.feasible);
       const rankBase = allFeasible.length ? allFeasible : lastRenderPortfolios;
-      const utilityRank = rankBase.filter(p => portfolioUtility(p) > utility).length + 1;
-      const riskRank = rankBase.filter(p => (p.vol + p.dd) < (portfolio.vol + portfolio.dd)).length + 1;
-      const returnRank = rankBase.filter(p => p.ret > portfolio.ret).length + 1;
+      const sortedByUtility = [...rankBase].sort((a, b) => portfolioUtility(b) - portfolioUtility(a));
+      const utilityRank = sortedByUtility.findIndex(p => signature(p) === signature(portfolio)) + 1;
+      const retContrib = portfolio.ret * 1.7;
+      const qualityContrib = portfolio.productScore * 0.22;
+      const volPenalty = portfolio.vol * 0.75;
+      const ddPenalty = portfolio.dd * 0.65;
+      const betaExcess = Math.max(0, portfolio.beta - state.maxBeta);
+      const betaPenalty = betaExcess * 80;
+      const overviewCards = [
+        { label: "预期收益 μ", value: fmtPct(portfolio.ret, 1), note: `目标 ≥ ${fmtPct(state.requiredReturn, 1)}`, pass: portfolio.ret >= state.requiredReturn },
+        { label: "波动估计 σ", value: fmtPct(portfolio.vol, 1), note: `上限 ≤ ${fmtPct(state.maxVol, 1)}`, pass: portfolio.vol <= state.maxVol },
+        { label: "回撤 proxy", value: fmtPct(portfolio.dd, 1), note: `预算 ≤ ${fmtPct(state.maxDrawdown, 1)}`, pass: portfolio.dd <= state.maxDrawdown },
+        { label: "Beta 暴露", value: fmtNum(portfolio.beta, 2), note: `上限 ≤ ${fmtNum(state.maxBeta, 2)}`, pass: portfolio.beta <= state.maxBeta },
+      ].map(item => `
+        <div class="detail-metric">
+          <span>${item.label}</span>
+          <strong class="${item.pass ? "positive" : "negative"}">${item.value}</strong>
+          <small>${item.note}</small>
+        </div>
+      `).join("");
+      const preferenceText = weightDefinitions
+        .filter(d => state.weights[d.key] > 0)
+        .map(d => `${d.label}=${state.weights[d.key]}`)
+        .join(" / ") || "未启用参数偏好";
+      const filterChips = filterSummary
+        .map(item => `<span>${escapeHtml(item)}</span>`)
+        .join("");
 
       document.getElementById("detailBody").innerHTML = `
-        <div class="detail-grid">
-          <div class="detail-metric"><span>预期收益</span><strong>${fmtPct(portfolio.ret, 1)}</strong></div>
-          <div class="detail-metric"><span>波动估计</span><strong>${fmtPct(portfolio.vol, 1)}</strong></div>
-          <div class="detail-metric"><span>回撤估计</span><strong>${fmtPct(portfolio.dd, 1)}</strong></div>
-          <div class="detail-metric"><span>Beta</span><strong>${fmtNum(portfolio.beta, 2)}</strong></div>
-        </div>
+        <div class="portfolio-derivation">
+          <div class="derivation-overview">${overviewCards}</div>
 
-        <div class="detail-block">
-          <strong>约束检查</strong>
-          <div class="detail-table-wrap">
-            <table class="detail-table">
-              <thead><tr><th>约束</th><th>组合值</th><th>目标</th><th>结果</th></tr></thead>
-              <tbody>
-                ${constraints.map(([name, actual, target, pass]) => `<tr><td>${name}</td><td class="num">${actual}</td><td class="num">${target}</td><td>${passTag(pass)}</td></tr>`).join("")}
-              </tbody>
-            </table>
-          </div>
-        </div>
+          <section class="derivation-step">
+            <div class="derivation-step-head">
+              <span class="step-index">1</span>
+              <div>
+                <strong>投资政策</strong>
+                <p>这些设定定义组合必须满足的硬约束，全部通过后进入可行集合。</p>
+              </div>
+            </div>
+            <div class="derivation-step-body">
+              <div class="detail-table-wrap">
+                <table class="detail-table is-policy">
+                  <thead><tr><th>项目</th><th>设定值</th><th>备注</th></tr></thead>
+                  <tbody>
+                    ${policyRows.map(([name, value, note]) => `<tr><td>${name}</td><td class="num">${value}</td><td><span class="panel-subtitle">${note}</span></td></tr>`).join("")}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
 
-        <div class="detail-block">
-          <strong>求解范围与输入</strong>
-          <p>
-            ${state.weightMode === "equal"
-              ? `等权模式 · ${optimizationMeta.fundCount || state.equalFundCount} 只基金，每只 ${(100 / (optimizationMeta.fundCount || state.equalFundCount)).toFixed(1)}%。可遍历资产池 ${optimizationMeta.poolCount || candidateMeta.count || 0} 只，枚举 ${fmtCount(optimizationMeta.generatedCount || 0)} 个组合（${optimizationMeta.totalCombos ? 'C(' + optimizationMeta.poolCount + ',' + optimizationMeta.fundCount + ')=' + fmtCount(optimizationMeta.totalCombos) : '精确遍历'}），其中 ${fmtCount(optimizationMeta.feasibleCount || 0)} 个可行。`
-              : `质量倾斜模式 · ${escapeHtml(profile.label)}（${escapeHtml(profile.range)}）。优化资产池 ${candidateMeta.count || 0} 只（覆盖 ${candidateMeta.sectionCount || 0} 个策略大类），生成 ${fmtCount(optimizationMeta.evaluatedCount || 0)} 个组合解，其中 ${fmtCount(optimizationMeta.feasibleCount || 0)} 个可行。`
-            }
-          </p>
-          <p>Beta benchmark: ${escapeHtml(state.betaBenchmark)}。Excel 明细已接入 ${highConfidenceTargets.length} 只。参数偏好: ${escapeHtml(weightText)}。暂停申购产品${state.allowPaused ? "允许" : "不允许"}进池。</p>
-        </div>
+          <section class="derivation-step">
+            <div class="derivation-step-head">
+              <span class="step-index">2</span>
+              <div>
+                <strong>参数质量 → 收益折扣 → 预期收益 μ</strong>
+                <p>维度重要性：${escapeHtml(preferenceText)}。质量分越高，历史收益在预期收益里保留得越多。</p>
+              </div>
+            </div>
+            <div class="derivation-step-body">
+              <div class="detail-table-wrap">
+                <table class="detail-table is-quality">
+                  <thead><tr><th>产品</th><th>质量分 · 加权拆解</th><th>收益折扣</th><th>历史年化</th><th>预期 μ</th><th>权重</th></tr></thead>
+                  <tbody>${qualityRows}</tbody>
+                </table>
+              </div>
+            </div>
+          </section>
 
-        <div class="detail-block">
-          <strong>持仓拆解</strong>
-          <div class="detail-table-wrap">
-            <table class="detail-table">
-              <thead><tr><th>产品</th><th>权重</th><th>质量</th><th>历史年化</th><th>预期μ</th><th>Beta</th><th>规模</th><th>上限/使用</th><th>关键特征</th></tr></thead>
-              <tbody>${holdingsRows}</tbody>
-            </table>
-          </div>
-        </div>
+          <section class="derivation-step">
+            <div class="derivation-step-head">
+              <span class="step-index">3</span>
+              <div>
+                <strong>候选池 → 入选原因</strong>
+                <p>从 ${candidateMeta.eligibleCount || eligibleFunds(scoredFunds()).length} 只可投标的池中过滤，先控制基础质量、样本、管理人分散和相关性重复。</p>
+              </div>
+            </div>
+            <div class="derivation-step-body">
+              <div class="detail-chip-line">${filterChips}</div>
+              <div class="detail-table-wrap">
+                <table class="detail-table is-pool">
+                  <thead><tr><th>产品</th><th>策略</th><th>质量</th><th>入选理由</th></tr></thead>
+                  <tbody>${poolRows}</tbody>
+                </table>
+              </div>
+            </div>
+          </section>
 
-        <div class="detail-block">
-          <strong>选中理由</strong>
-          <p>效用分 = ${utility.toFixed(1)}，在 ${rankBase.length} 个${allFeasible.length ? "可行" : ""}解中排名第 ${utilityRank}。
-          ${portfolio.label.includes("低风险") ? `风险值（σ+DD=${fmtPct(portfolio.vol + portfolio.dd, 1)}）是可行解中最低的，在 ${allFeasible.length || rankBase.length} 个组合中风险排名第 ${riskRank}。` : ""}
-          ${portfolio.label.includes("收益上沿") ? `预期收益（μ=${fmtPct(portfolio.ret, 1)}）是可行解中最高的，在 ${allFeasible.length || rankBase.length} 个组合中收益排名第 ${returnRank}。` : ""}
-          ${portfolio.label.includes("效用最优") ? `该组合在收益、质量和风险之间取得了最佳平衡。` : ""}
-          ${portfolio.label.includes("最接近") ? `当前无完全可行解，该组合在收益—风险—约束偏离之间综合最优。` : ""}
-          </p>
-          <div class="detail-rule">效用 = μ×1.7 + 质量×0.22 − σ×0.75 − DD×0.65 − max(0,β−β<sub>max</sub>)×80<br>组合效用 = ${fmtPct(portfolio.ret, 1)}×1.7 + ${fmtNum(portfolio.productScore, 1)}×0.22 − ${fmtPct(portfolio.vol, 1)}×0.75 − ${fmtPct(portfolio.dd, 1)}×0.65${portfolio.beta > state.maxBeta ? " − " + fmtNum(portfolio.beta - state.maxBeta, 2) + "×80" : ""} = ${utility.toFixed(1)}</div>
-        </div>
+          <section class="derivation-step">
+            <div class="derivation-step-head">
+              <span class="step-index">4</span>
+              <div>
+                <strong>约束评估</strong>
+                <p>${portfolio.feasible ? "四项约束全部通过，该组合为可行解。" : `${portfolio.misses.join("、")}，该组合为当前参数下的近似解。`}</p>
+              </div>
+            </div>
+            <div class="derivation-step-body">
+              <div class="detail-table-wrap">
+                <table class="detail-table is-constraints">
+                  <thead><tr><th>约束</th><th>组合值</th><th>目标</th><th>余量</th><th>结果</th></tr></thead>
+                  <tbody>
+                    ${constraintRows.map(r => `<tr><td>${r.name}</td><td class="num">${r.actual}</td><td class="num">${r.target}</td><td class="num ${r.pass ? "positive" : "negative"}">${r.margin}</td><td>${passTag(r.pass)}</td></tr>`).join("")}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
 
-        <div class="detail-block">
-          <strong>模型参数</strong>
-          <p>${state.weightMode === "equal"
-            ? "等权模式下所有基金权重固定为 1/K。参数质量分影响收益置信折扣和入池优先级，但不影响权重。"
-            : "质量倾斜模式下，参数质量分同时作用于收益置信折扣、单品权重上限和优先入池顺序。权重由效用搜索+上限约束共同决定。"
-          }</p>
-          <div class="detail-rule">参数质量分 = Σ(维度分 × 重要性) / Σ(重要性)<br>收益置信折扣 = 45% + 55% × 参数质量分 / 100<br>预期收益 μ = 历史年化 × 收益置信折扣（负收益不折扣）<br>单品上限: 质量≥85→${(profile.caps[0].cap*100).toFixed(0)}% / ≥75→${(profile.caps[1].cap*100).toFixed(0)}% / ≥65→${(profile.caps[2].cap*100).toFixed(0)}% / ≥55→${(profile.caps[3].cap*100).toFixed(0)}% / <55→${(profile.caps[4].cap*100).toFixed(0)}%</div>
+          <section class="derivation-step">
+            <div class="derivation-step-head">
+              <span class="step-index">5</span>
+              <div>
+                <strong>效用排序</strong>
+                <p>效用把预期收益、参数质量和风险合成同一套相对排序，数值用于比较同一批组合解。</p>
+              </div>
+            </div>
+            <div class="derivation-step-body">
+              <p>${portfolio.label.includes("效用最优")
+                ? `该组合在 ${rankBase.length} 个${allFeasible.length ? "可行" : ""}解中效用排名第 ${utilityRank}，收益、质量、风险的综合表现最优。`
+                : portfolio.label.includes("低风险")
+                  ? `风险（σ+DD）在所有解中最低，对应最保守的风险预算。`
+                  : portfolio.label.includes("收益上沿")
+                    ? `预期收益在所有解中最高，对应收益上限方案。`
+                    : `当前无完全可行解，该组合在收益、风险和约束偏离之间的综合表现最好。`
+              }</p>
+              <div class="detail-rule derivation-formula">效用 = μ×1.7 + 质量×0.22 − σ×0.75 − DD×0.65${betaExcess > 0 ? " − β超限×80" : ""} = ${utility.toFixed(1)}
+= ${retContrib.toFixed(1)} + ${qualityContrib.toFixed(1)} − ${volPenalty.toFixed(1)} − ${ddPenalty.toFixed(1)}${betaExcess > 0 ? " − " + betaPenalty.toFixed(1) : ""}
+
+解读：1% 额外收益 ≈ 抵消 2.3% 波动上升；质量每高 10 分 ≈ 抵消 2.9% 波动上升；Beta 超限惩罚较高。</div>
+            </div>
+          </section>
         </div>
       `;
       document.getElementById("detailModal").hidden = false;
